@@ -12,7 +12,7 @@ import api from './utils/api'; // Axios instance for API calls
 
 function App() {
     const isProduction = process.env.NODE_ENV === 'production';
-    const basePath = isProduction ? '/TheRealEstate' : '';
+    const basePath = isProduction ? '/test' : '';
     const [listings, setListings] = useState([]); // Maintain the listings state here
     const [wishlist, setWishlist] = useState([]);
     const [isAuthModalOpen, setAuthModalOpen] = useState(false);
