@@ -29,7 +29,7 @@ function PropertyCard({ property, addToWishlist, removeFromWishlist, isWishlist,
 
     return (
         <div className="property-card">
-            <img src={`http://localhost:5000/${property.image}`} alt={property.title} className="property-image" />
+            <img src={`https://test-backend-d88x.onrender.com/${property.image}`} alt={property.title} className="property-image" />
             <div className="property-details">
                 <h2>{property.title}</h2>
                 <p>{property.address}</p>

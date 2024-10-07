@@ -10,7 +10,7 @@ function Wishlist() {
         const fetchWishlist = async () => {
             if (userId) {
                 try {
-                    const response = await fetch(`http://localhost:5000/api/wishlist/${userId}`);
+                    const response = await fetch(`https://test-backend-d88x.onrender.com/api/wishlist/${userId}`);
                     const data = await response.json();
                     setWishlist(data);
                 } catch (error) {
@@ -24,7 +24,7 @@ function Wishlist() {
     const removeFromWishlist = async (propertyId) => {
         try {
             // Send a DELETE request to remove the property from the wishlist
-            await fetch('http://localhost:5000/api/wishlist', {
+            await fetch('https://test-backend-d88x.onrender.com/api/wishlist', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

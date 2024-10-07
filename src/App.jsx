@@ -25,7 +25,7 @@ function App() {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get('http://localhost:5000/api/listings'); // Replace with actual backend URL
+            const response = await axios.get('https://test-backend-d88x.onrender.com/api/listings'); // Replace with actual backend URL
             setListings(response.data);
         } catch (error) {
             console.error('Error fetching listings:', error);

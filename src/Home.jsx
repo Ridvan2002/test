@@ -25,7 +25,7 @@ function Home({ listings, handleOpenAuthModal }) {
         }
 
         try {
-            await axios.post('http://localhost:5000/api/wishlist', { userId, propertyId });
+            await axios.post('https://test-backend-d88x.onrender.com/api/wishlist', { userId, propertyId });
         } catch (error) {
             console.error('Error adding to wishlist:', error);
         }

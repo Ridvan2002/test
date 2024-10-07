@@ -170,7 +170,6 @@ app.delete('/api/wishlist', async (req, res) => {
     const { userId, propertyId } = req.body;
     const wishlist = await readJsonFile(wishlistFile);
 
-    // Filter out the item to remove
     const updatedWishlist = wishlist.filter(item => !(item.userId === userId && item.propertyId === propertyId));
 
     await writeJsonFile(wishlistFile, updatedWishlist);
@@ -201,7 +200,8 @@ app.get('/api/wishlist/:userId', async (req, res) => {
 // Serve static files from the 'uploads' directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Start the server
-app.listen(5000, () => {
-  console.log('Server running on port 5000');
+// Use dynamic port from environment or default to 5000
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

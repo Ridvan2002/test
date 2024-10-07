@@ -49,8 +49,8 @@ function PropertyDetails({ listings, handleOpenAuthModal, onBuy }) {
     const formattedPrice = `$${parseInt(property.price, 10).toLocaleString()}`;
 
     // Construct image URLs for main and additional images
-    const mainImageUrl = `http://localhost:5000/${property.image}`; // Main image URL from your server
-    const additionalImageUrls = property.additionalImages.map(image => `http://localhost:5000/${image}`); // Additional image URLs from your server
+    const mainImageUrl = `https://test-backend-d88x.onrender.com/${property.image}`; // Main image URL from your server
+    const additionalImageUrls = property.additionalImages.map(image => `https://test-backend-d88x.onrender.com/${image}`); // Additional image URLs from your server
 
     return (
         <div className="property-details-page">

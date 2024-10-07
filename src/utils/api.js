@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Set up Axios instance for making requests to your backend
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api', // Using localhost for your backend
+  baseURL: 'https://test-backend-d88x.onrender.com/api', // Using localhost for your backend
   headers: {
     'Content-Type': 'application/json',
   },
