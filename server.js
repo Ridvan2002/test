@@ -1,22 +1,42 @@
 const express = require('express');
-const fs = require('fs').promises;
+const AWS = require('aws-sdk');
+const multer = require('multer');
+const multerS3 = require('multer-s3');
 const path = require('path');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
-const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const usersFile = path.join(__dirname, 'data', 'users.json');
-const listingsFile = path.join(__dirname, 'data', 'listings.json');
-const wishlistFile = path.join(__dirname, 'data', 'wishlist.json');
+// Configure AWS SDK
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION, // Replace with your region if not using env variable
+});
 
-// Helper function to read JSON file
-async function readJsonFile(file) {
+// Create an S3 instance
+const s3 = new AWS.S3();
+
+// Set up multer to upload files to S3
+const upload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: process.env.AWS_BUCKET_NAME, // S3 bucket name from environment variable
+    acl: 'public-read', // Make the uploaded files publicly readable
+    key: function (req, file, cb) {
+      const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
+      cb(null, uniqueName); // The name of the file to be saved in S3
+    }
+  })
+});
+
+// Helper function to read JSON data
+const readJsonFile = async (file) => {
   try {
     const data = await fs.readFile(file, 'utf-8');
     return JSON.parse(data);
@@ -24,68 +44,42 @@ async function readJsonFile(file) {
     console.error(`Error reading ${file}:`, error);
     throw new Error(`Could not read ${file}`);
   }
-}
+};
 
-// Helper function to write to JSON file
-async function writeJsonFile(file, data) {
+// Helper function to write JSON data
+const writeJsonFile = async (file, data) => {
   try {
     await fs.writeFile(file, JSON.stringify(data, null, 2), 'utf-8');
   } catch (error) {
     console.error(`Error writing to ${file}:`, error);
     throw new Error(`Could not write to ${file}`);
   }
-}
+};
 
-// Setup multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  },
-});
-const upload = multer({ storage: storage });
-
-// Insert listing with additional images
+// Insert listing with images uploading to S3
 app.post('/api/listings', upload.fields([{ name: 'mainImage', maxCount: 1 }, { name: 'additionalImages', maxCount: 10 }]), async (req, res) => {
   try {
     const { title, description, price, address, bedrooms, bathrooms, squareFootage } = req.body;
-    const listings = await readJsonFile(listingsFile);
-
-    const listingId = listings.length + 1;
-    let mainImagePath = '';
-
-    if (req.files.mainImage && req.files.mainImage.length > 0) {
-      mainImagePath = `uploads/image${listingId}_main${path.extname(req.files.mainImage[0].originalname)}`;
-      await fs.rename(req.files.mainImage[0].path, mainImagePath);
-    }
 
     const newListing = {
-      id: listingId,
+      id: uuidv4(),
       title,
       description,
       price,
       address,
-      image: mainImagePath,
       bedrooms,
       bathrooms,
       squareFootage,
-      additionalImages: [],
+      mainImage: req.files.mainImage ? req.files.mainImage[0].location : '', // S3 URL for main image
+      additionalImages: req.files.additionalImages ? req.files.additionalImages.map(file => file.location) : [] // S3 URLs for additional images
     };
 
-    if (req.files.additionalImages && req.files.additionalImages.length > 0) {
-      for (const [index, file] of req.files.additionalImages.entries()) {
-        const imageFileName = `uploads/image${listingId}_${index + 1}${path.extname(file.originalname)}`;
-        await fs.rename(file.path, imageFileName);
-        newListing.additionalImages.push(imageFileName);
-      }
-    }
-
+    // Save newListing to your listings JSON or database
+    const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
     listings.push(newListing);
-    await writeJsonFile(listingsFile, listings);
-    res.status(201).json({ message: 'Listing and images created successfully' });
+    await writeJsonFile(path.join(__dirname, 'data', 'listings.json'), listings);
+
+    res.status(201).json({ message: 'Listing and images created successfully', newListing });
   } catch (error) {
     console.error('Error creating listing:', error.message);
     res.status(500).json({ message: 'Server error: Unable to create listing' });
@@ -95,7 +89,7 @@ app.post('/api/listings', upload.fields([{ name: 'mainImage', maxCount: 1 }, { n
 // Get listings and their associated images
 app.get('/api/listings', async (req, res) => {
   try {
-    const listings = await readJsonFile(listingsFile);
+    const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
     res.json(listings);
   } catch (err) {
     console.error('Error fetching listings:', err);
@@ -107,7 +101,7 @@ app.get('/api/listings', async (req, res) => {
 app.post('/api/register', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const users = await readJsonFile(usersFile);
+    const users = await readJsonFile(path.join(__dirname, 'data', 'users.json'));
 
     const userExists = users.some((user) => user.email === email);
     if (userExists) {
@@ -115,10 +109,10 @@ app.post('/api/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = { id: users.length + 1, email, password: hashedPassword };
+    const newUser = { id: uuidv4(), email, password: hashedPassword };
     users.push(newUser);
 
-    await writeJsonFile(usersFile, users);
+    await writeJsonFile(path.join(__dirname, 'data', 'users.json'), users);
     res.status(201).json({ message: 'User registered successfully.' });
   } catch (error) {
     console.error('Error registering user:', error.message);
@@ -130,7 +124,7 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const users = await readJsonFile(usersFile);
+    const users = await readJsonFile(path.join(__dirname, 'data', 'users.json'));
 
     const user = users.find((user) => user.email === email);
     if (!user) {
@@ -153,10 +147,10 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/wishlist', async (req, res) => {
   try {
     const { userId, propertyId } = req.body;
-    const wishlist = await readJsonFile(wishlistFile);
+    const wishlist = await readJsonFile(path.join(__dirname, 'data', 'wishlist.json'));
 
     wishlist.push({ userId, propertyId });
-    await writeJsonFile(wishlistFile, wishlist);
+    await writeJsonFile(path.join(__dirname, 'data', 'wishlist.json'), wishlist);
     res.status(201).json({ message: 'Property added to wishlist.' });
   } catch (error) {
     console.error('Error adding to wishlist:', error.message);
@@ -168,11 +162,11 @@ app.post('/api/wishlist', async (req, res) => {
 app.delete('/api/wishlist', async (req, res) => {
   try {
     const { userId, propertyId } = req.body;
-    const wishlist = await readJsonFile(wishlistFile);
+    const wishlist = await readJsonFile(path.join(__dirname, 'data', 'wishlist.json'));
 
     const updatedWishlist = wishlist.filter(item => !(item.userId === userId && item.propertyId === propertyId));
 
-    await writeJsonFile(wishlistFile, updatedWishlist);
+    await writeJsonFile(path.join(__dirname, 'data', 'wishlist.json'), updatedWishlist);
     res.status(200).json({ message: 'Property removed from wishlist.' });
   } catch (error) {
     console.error('Error removing from wishlist:', error.message);
@@ -184,8 +178,8 @@ app.delete('/api/wishlist', async (req, res) => {
 app.get('/api/wishlist/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const wishlist = await readJsonFile(wishlistFile);
-    const listings = await readJsonFile(listingsFile);
+    const wishlist = await readJsonFile(path.join(__dirname, 'data', 'wishlist.json'));
+    const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
 
     const userWishlist = wishlist.filter((item) => item.userId === parseInt(userId));
     const userListings = userWishlist.map((item) => listings.find((listing) => listing.id === item.propertyId));
@@ -196,9 +190,6 @@ app.get('/api/wishlist/:userId', async (req, res) => {
     res.status(500).json({ message: 'Server error: Unable to fetch wishlist' });
   }
 });
-
-// Serve static files from the 'uploads' directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Use dynamic port from environment or default to 5000
 const PORT = process.env.PORT || 5000;
