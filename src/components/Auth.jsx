@@ -3,33 +3,38 @@ import '../styles/Auth.css';
 import { useAuth } from '../context/AuthContext';
 
 function Auth({ isOpen, onClose }) {
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(true); // Switch between login and register
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, register } = useAuth();
+  const { login, register } = useAuth(); // Use login and register from context
 
-  // Define basePath here as well
+  // Handle environment-based base path
   const isProduction = process.env.NODE_ENV === 'production';
   const basePath = isProduction ? '/TheRealEstate' : '';
 
+  // Handle form submission for login or register
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    
     if (isLogin) {
-      login(email, password, onClose);
+      login(email, password, onClose); // Call login function if isLogin is true
     } else {
-      register(email, password, onClose);
+      register(email, password, onClose); // Call register function if isLogin is false
     }
+
+    // Clear the form fields
     setEmail('');
     setPassword('');
   };
 
+  // Toggle between login and register mode
   const handleToggle = () => {
-    setIsLogin(!isLogin);
-    setEmail('');
+    setIsLogin(!isLogin); // Toggle the isLogin state
+    setEmail(''); // Reset email and password fields
     setPassword('');
   };
 
+  // If the modal is closed, return null and don't render it
   if (!isOpen) return null;
 
   return (
@@ -72,12 +77,12 @@ function Auth({ isOpen, onClose }) {
             required
           />
           <button type="submit" className="auth-submit">
-            {isLogin ? 'Sign in' : 'Register'}
+            {isLogin ? 'Sign in' : 'Register'} {/* Toggle button text based on isLogin */}
           </button>
         </form>
         {isLogin && (
           <div className="forgot-password">
-            <a href="#">Forgot your password?</a>
+            <a href="#">Forgot your password?</a> {/* Link for forgot password */}
           </div>
         )}
       </div>

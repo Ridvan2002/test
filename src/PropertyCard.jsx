@@ -16,20 +16,20 @@ function PropertyCard({ property, addToWishlist, removeFromWishlist, isWishlist,
 
     const handleAddToWishlist = () => {
         if (!isLoggedIn) {
-            handleOpenAuthModal('/wishlist');
+            handleOpenAuthModal('/wishlist'); // Open authentication modal if not logged in
         } else {
-            addToWishlist(property);
-            navigate('/wishlist');
+            addToWishlist(property); // Add property to wishlist
+            navigate('/wishlist'); // Navigate to wishlist page
         }
     };
 
     const handleRemoveFromWishlist = () => {
-        removeFromWishlist(property);
+        removeFromWishlist(property); // Remove property from wishlist
     };
 
     return (
         <div className="property-card">
-            <img src={property.image} alt={property.title} className="property-image" />
+            <img src={`http://localhost:5000/${property.image}`} alt={property.title} className="property-image" />
             <div className="property-details">
                 <h2>{property.title}</h2>
                 <p>{property.address}</p>

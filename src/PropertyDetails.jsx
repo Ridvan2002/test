@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import './styles/PropertyDetails.css';
 
@@ -7,10 +7,9 @@ function PropertyDetails({ listings, handleOpenAuthModal, onBuy }) {
     const { id } = useParams();
     const property = listings.find((listing) => listing.id === parseInt(id));
     const { isLoggedIn } = useAuth();
-    const navigate = useNavigate();
 
-    const [visibleImages, setVisibleImages] = useState(0); // State to track visible images
-    const [lightboxImage, setLightboxImage] = useState(null); // State for lightbox image
+    const [visibleImages, setVisibleImages] = useState(0); // State to track visible images in the gallery
+    const [lightboxImage, setLightboxImage] = useState(null); // State for lightbox view
 
     if (!property) {
         return <p>Property not found.</p>;
@@ -50,8 +49,8 @@ function PropertyDetails({ listings, handleOpenAuthModal, onBuy }) {
     const formattedPrice = `$${parseInt(property.price, 10).toLocaleString()}`;
 
     // Construct image URLs for main and additional images
-    const mainImageUrl = `http://localhost:5000/${property.image}`; // Adjust URL to match your server's setup
-    const additionalImageUrls = property.additionalImages.map(image => `http://localhost:5000/${image}`); // Adjust path for additional images
+    const mainImageUrl = `http://localhost:5000/${property.image}`; // Main image URL from your server
+    const additionalImageUrls = property.additionalImages.map(image => `http://localhost:5000/${image}`); // Additional image URLs from your server
 
     return (
         <div className="property-details-page">

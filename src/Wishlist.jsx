@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PropertyCard from './PropertyCard';
 import { useAuth } from './context/AuthContext';
-import api from './utils/api';
 
 function Wishlist() {
     const { userId } = useAuth();
@@ -11,8 +10,9 @@ function Wishlist() {
         const fetchWishlist = async () => {
             if (userId) {
                 try {
-                    const response = await api.get(`/wishlist/${userId}`);
-                    setWishlist(response.data);
+                    const response = await fetch(`http://localhost:5000/api/wishlist/${userId}`);
+                    const data = await response.json();
+                    setWishlist(data);
                 } catch (error) {
                     console.error('Error fetching wishlist:', error);
                 }
@@ -23,7 +23,16 @@ function Wishlist() {
 
     const removeFromWishlist = async (propertyId) => {
         try {
-            await api.delete('/wishlist', { data: { userId, propertyId } });
+            // Send a DELETE request to remove the property from the wishlist
+            await fetch('http://localhost:5000/api/wishlist', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userId, propertyId }),
+            });
+
+            // Update the state to remove the property from the UI
             setWishlist(wishlist.filter(item => item.id !== propertyId));
         } catch (error) {
             console.error('Error removing from wishlist:', error);

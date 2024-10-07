@@ -1,12 +1,14 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom'; // Ensure proper use of navigate
 
-function PrivateRoute({ children, openAuthModal, redirectPath, navigate }) {
+function PrivateRoute({ children, openAuthModal, redirectPath }) {
     const { isLoggedIn } = useAuth();
+    const navigate = useNavigate(); // Use useNavigate hook for navigation
 
     useEffect(() => {
         if (!isLoggedIn) {
-            openAuthModal(); // Trigger the Auth modal
+            openAuthModal(); // Trigger the Auth modal if not logged in
         }
     }, [isLoggedIn, openAuthModal]);
 

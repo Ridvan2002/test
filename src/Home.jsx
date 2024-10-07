@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PropertyCard from './PropertyCard';
 import { useAuth } from './context/AuthContext';
-import api from './utils/api';
+import axios from 'axios';
 
 function Home({ listings, handleOpenAuthModal }) {
     const { userId, isLoggedIn } = useAuth(); 
@@ -25,7 +25,7 @@ function Home({ listings, handleOpenAuthModal }) {
         }
 
         try {
-            await api.post('/wishlist', { userId, propertyId });
+            await axios.post('http://localhost:5000/api/wishlist', { userId, propertyId });
         } catch (error) {
             console.error('Error adding to wishlist:', error);
         }
