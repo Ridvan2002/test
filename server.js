@@ -26,7 +26,7 @@ const upload = multer({
   storage: multer.memoryStorage(), // Store files in memory before uploading to S3
 });
 
-// Helper function to upload file to S3
+// Helper function to upload file to S3 without ACL (rely on bucket policy for access control)
 const uploadToS3 = async (file, bucketName, key) => {
   try {
     const command = new PutObjectCommand({
@@ -34,7 +34,6 @@ const uploadToS3 = async (file, bucketName, key) => {
       Key: key,
       Body: file.buffer,
       ContentType: file.mimetype,
-      ACL: 'public-read', // Make the file publicly readable
     });
 
     await s3Client.send(command);
@@ -73,7 +72,7 @@ app.post(
   async (req, res) => {
     try {
       const { title, description, price, address, bedrooms, bathrooms, squareFootage } = req.body;
-      
+
       // Upload main image
       let mainImageUrl = '';
       if (req.files.mainImage) {
