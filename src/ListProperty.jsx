@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './styles/ListProperty.css';
 import { useNavigate } from 'react-router-dom';
 
-function ListProperty({ addListing }) {
+function ListProperty({ addListing }) { 
     const [formData, setFormData] = useState({
         address: '',
         propertyType: '',
@@ -11,8 +11,8 @@ function ListProperty({ addListing }) {
         squareFootage: '',
         price: '',
         description: '',
-        mainImage: null,  // Main image file
-        additionalImages: []  // Additional image files
+        mainImage: null, // Main image file
+        additionalImages: [] // Additional image files
     });
     const [displayPrice, setDisplayPrice] = useState('');
     const navigate = useNavigate();
@@ -21,9 +21,9 @@ function ListProperty({ addListing }) {
         const { name, value, type, files } = e.target;
         if (type === 'file') {
             if (name === 'mainImage') {
-                setFormData({ ...formData, mainImage: files[0] });  // Set main image
+                setFormData({ ...formData, [name]: files[0] }); // Set main image
             } else if (name === 'additionalImages') {
-                setFormData({ ...formData, additionalImages: Array.from(files) });  // Set additional images
+                setFormData({ ...formData, [name]: Array.from(files) }); // Set additional images
             }
         } else if (name === 'price') {
             const numericValue = value.replace(/[^0-9]/g, '');
@@ -39,87 +39,44 @@ function ListProperty({ addListing }) {
         return `$${parseInt(value, 10).toLocaleString()}`;
     };
 
-    // Function to get a pre-signed URL from the backend
-    const getPresignedUrl = async (file) => {
-        try {
-            const response = await fetch('https://test-backend-d88x.onrender.com/api/upload-url', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ fileName: file.name, fileType: file.type })
-            });
-
-            const data = await response.json();
-            return data.url;  // Pre-signed URL from backend
-        } catch (error) {
-            console.error('Error generating pre-signed URL:', error);
-            throw error;
-        }
-    };
-
-    // Function to upload a file to S3 using the pre-signed URL
-    const uploadToS3 = async (file, presignedUrl) => {
-        try {
-            await fetch(presignedUrl, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': file.type
-                },
-                body: file
-            });
-            console.log('Uploaded to S3:', file.name);
-        } catch (error) {
-            console.error('Error uploading to S3:', error);
-            throw error;
-        }
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Create a FormData object to handle file uploads (main image + additional images)
+        const formDataToSend = new FormData();
+        const title = `${formData.bedrooms} Bedroom ${formData.propertyType}`;
+        
+        // Append form data for property details
+        formDataToSend.append('title', title);
+        formDataToSend.append('description', formData.description);
+        formDataToSend.append('price', formData.price);
+        formDataToSend.append('address', formData.address);
+        formDataToSend.append('bedrooms', formData.bedrooms);
+        formDataToSend.append('bathrooms', formData.bathrooms);
+        formDataToSend.append('squareFootage', formData.squareFootage);
+        
+        // Append the main image file
+        if (formData.mainImage) {
+            formDataToSend.append('mainImage', formData.mainImage);
+        }
+
+        // Append additional image files
+        formData.additionalImages.forEach((file) => {
+            formDataToSend.append('additionalImages', file);
+        });
+
         try {
-            // Step 1: Upload Main Image to S3
-            let mainImageUrl = '';
-            if (formData.mainImage) {
-                const presignedUrl = await getPresignedUrl(formData.mainImage);
-                await uploadToS3(formData.mainImage, presignedUrl);
-                mainImageUrl = presignedUrl.split('?')[0];  // Get URL without query params
-            }
-
-            // Step 2: Upload Additional Images to S3
-            const additionalImagesUrls = [];
-            for (const file of formData.additionalImages) {
-                const presignedUrl = await getPresignedUrl(file);
-                await uploadToS3(file, presignedUrl);
-                additionalImagesUrls.push(presignedUrl.split('?')[0]);  // Get URL without query params
-            }
-
-            // Step 3: Send property data and image URLs to the backend
-            const listingData = {
-                title: `${formData.bedrooms} Bedroom ${formData.propertyType}`,
-                description: formData.description,
-                price: formData.price,
-                address: formData.address,
-                bedrooms: formData.bedrooms,
-                bathrooms: formData.bathrooms,
-                squareFootage: formData.squareFootage,
-                mainImage: mainImageUrl,
-                additionalImages: additionalImagesUrls
-            };
-
+            // Fetch request to the server (server.js) to handle file upload and store data in JSON
             const response = await fetch('https://test-backend-d88x.onrender.com/api/listings', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(listingData)
+                body: formDataToSend,
             });
 
             if (response.status === 201) {
+                // Trigger listing update after submission
                 addListing();
                 window.alert('Listing submitted successfully!');
-                navigate('/');
+                navigate('/'); // Redirect to Home after submission
             } else {
                 window.alert('Failed to submit the listing.');
             }
@@ -236,4 +193,3 @@ function ListProperty({ addListing }) {
 }
 
 export default ListProperty;
-// why
