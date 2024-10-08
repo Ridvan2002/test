@@ -1,5 +1,5 @@
 const express = require('express');
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3'); // AWS SDK v3
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const multer = require('multer');
 const path = require('path');
 const cors = require('cors');
@@ -7,41 +7,33 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs').promises;
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner'); // Add this for presigned URLs
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Configure AWS SDK v3
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'us-east-1', // Add fallback region
+// Configure AWS SDK v3 S3Client
+const s3 = new S3Client({
+  region: process.env.AWS_REGION || 'us-east-1',
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
 
-// Set up multer for file uploads (locally, before sending to S3)
-const upload = multer({
-  storage: multer.memoryStorage(), // Store files in memory before uploading to S3
-});
+// Helper function to generate pre-signed URL
+const generatePresignedUrl = async (fileName, fileType) => {
+  const params = {
+    Bucket: 'test-listing-image',
+    Key: fileName,
+    ContentType: fileType,
+    ACL: 'public-read',  // Optional, sets file to be publicly readable
+  };
 
-// Helper function to upload file to S3 without ACL (rely on bucket policy for access control)
-const uploadToS3 = async (file, bucketName, key) => {
-  try {
-    const command = new PutObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-    });
-
-    await s3Client.send(command);
-    return `https://${bucketName}.s3.amazonaws.com/${key}`;
-  } catch (err) {
-    console.error('Error uploading file to S3:', err);
-    throw err;
-  }
+  const command = new PutObjectCommand(params);
+  const url = await getSignedUrl(s3, command, { expiresIn: 3600 }); // URL valid for 1 hour
+  return url;
 };
 
 // Helper function to read JSON data
@@ -65,69 +57,51 @@ const writeJsonFile = async (file, data) => {
   }
 };
 
-// Insert listing with images uploading to S3
-app.post(
-  '/api/listings',
-  upload.fields([{ name: 'mainImage', maxCount: 1 }, { name: 'additionalImages', maxCount: 10 }]),
-  async (req, res) => {
-    try {
-      const { title, description, price, address, bedrooms, bathrooms, squareFootage } = req.body;
-
-      // Upload main image
-      let mainImageUrl = '';
-      if (req.files.mainImage) {
-        const mainImageKey = `${uuidv4()}${path.extname(req.files.mainImage[0].originalname)}`;
-        mainImageUrl = await uploadToS3(req.files.mainImage[0], 'test-listing-image', mainImageKey);
-      }
-
-      // Upload additional images
-      const additionalImagesUrls = [];
-      if (req.files.additionalImages) {
-        for (const file of req.files.additionalImages) {
-          const additionalImageKey = `${uuidv4()}${path.extname(file.originalname)}`;
-          const imageUrl = await uploadToS3(file, 'test-listing-image', additionalImageKey);
-          additionalImagesUrls.push(imageUrl);
-        }
-      }
-
-      const newListing = {
-        id: uuidv4(),
-        title,
-        description,
-        price,
-        address,
-        bedrooms,
-        bathrooms,
-        squareFootage,
-        mainImage: mainImageUrl, // S3 URL for main image
-        additionalImages: additionalImagesUrls, // S3 URLs for additional images
-      };
-
-      // Save newListing to your listings JSON or database
-      const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
-      listings.push(newListing);
-      await writeJsonFile(path.join(__dirname, 'data', 'listings.json'), listings);
-
-      res.status(201).json({ message: 'Listing and images created successfully', newListing });
-    } catch (error) {
-      console.error('Error creating listing:', error.message);
-      res.status(500).json({ message: 'Server error: Unable to create listing' });
-    }
-  }
-);
-
-// Get listings and their associated images
-app.get('/api/listings', async (req, res) => {
+// Route for generating pre-signed URLs for image upload
+app.post('/api/upload-url', async (req, res) => {
   try {
-    const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
-    res.json(listings);
-  } catch (err) {
-    console.error('Error fetching listings:', err);
-    res.status(500).json({ message: 'Server error: Unable to fetch listings' });
+    const { fileName, fileType } = req.body;
+    const uniqueFileName = `${uuidv4()}${path.extname(fileName)}`; // Create a unique name for the file
+    const url = await generatePresignedUrl(uniqueFileName, fileType);
+
+    res.status(200).json({ url, fileName: uniqueFileName });
+  } catch (error) {
+    console.error('Error generating pre-signed URL:', error.message);
+    res.status(500).json({ message: 'Server error: Unable to generate pre-signed URL' });
   }
 });
 
-// User Registration
+// Insert listing with image URLs (no direct uploads here, use pre-signed URLs)
+app.post('/api/listings', async (req, res) => {
+  try {
+    const { title, description, price, address, bedrooms, bathrooms, squareFootage, mainImage, additionalImages } = req.body;
+
+    const newListing = {
+      id: uuidv4(),
+      title,
+      description,
+      price,
+      address,
+      bedrooms,
+      bathrooms,
+      squareFootage,
+      mainImage,  // URL returned from S3 pre-signed upload
+      additionalImages // Array of S3 URLs
+    };
+
+    // Save newListing to your listings JSON or database
+    const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
+    listings.push(newListing);
+    await writeJsonFile(path.join(__dirname, 'data', 'listings.json'), listings);
+
+    res.status(201).json({ message: 'Listing created successfully', newListing });
+  } catch (error) {
+    console.error('Error creating listing:', error.message);
+    res.status(500).json({ message: 'Server error: Unable to create listing' });
+  }
+});
+
+// User Registration (remains the same)
 app.post('/api/register', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -150,7 +124,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// User Login
+// User Login (remains the same)
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
