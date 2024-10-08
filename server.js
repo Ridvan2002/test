@@ -2,15 +2,14 @@ const express = require('express');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const path = require('path');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs').promises;
+const multer = require('multer'); // Import multer
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
 
 // Configure AWS SDK v3 S3Client
 const s3 = new S3Client({
@@ -20,6 +19,9 @@ const s3 = new S3Client({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
+
+// Multer configuration
+const upload = multer();
 
 // Helper function to generate pre-signed URL
 const generatePresignedUrl = async (fileName, fileType) => {
@@ -69,7 +71,9 @@ app.post('/api/upload-url', async (req, res) => {
     res.status(500).json({ message: 'Server error: Unable to generate pre-signed URL' });
   }
 });
-app.post('/api/listings', async (req, res) => {
+
+// Insert listing with image URLs (handling files using multer)
+app.post('/api/listings', upload.none(), async (req, res) => {
   try {
     console.log(req.body);  // Log the received data to debug
 
