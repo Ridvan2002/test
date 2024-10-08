@@ -1,5 +1,5 @@
 const express = require('express');
-const AWS = require('aws-sdk');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3'); // Import the specific clients
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const path = require('path');
@@ -13,27 +13,26 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Configure AWS SDK
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION, // Region for your AWS services
+// Configure AWS SDK v3
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || 'us-east-1', // Add fallback region
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
 });
 
-// Create an S3 instance
-const s3 = new AWS.S3();
-
-// Set up multer to upload files to S3
+// Set up multer to upload files to S3 using AWS SDK v3
 const upload = multer({
   storage: multerS3({
-    s3: s3,
+    s3: s3Client,
     bucket: 'test-listing-image', // Hardcoded S3 bucket name
     acl: 'public-read', // Make the uploaded files publicly readable
     key: function (req, file, cb) {
       const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
       cb(null, uniqueName); // The name of the file to be saved in S3
-    }
-  })
+    },
+  }),
 });
 
 // Helper function to read JSON data
