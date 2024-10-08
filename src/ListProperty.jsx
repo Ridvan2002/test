@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './styles/ListProperty.css';
 import { useNavigate } from 'react-router-dom';
 
-function ListProperty({ addListing }) { 
+function ListProperty({ addListing }) {
     const [formData, setFormData] = useState({
         address: '',
         propertyType: '',
@@ -21,9 +21,9 @@ function ListProperty({ addListing }) {
         const { name, value, type, files } = e.target;
         if (type === 'file') {
             if (name === 'mainImage') {
-                setFormData({ ...formData, [name]: files[0] }); // Set main image
+                setFormData({ ...formData, mainImage: files[0] }); // Set main image
             } else if (name === 'additionalImages') {
-                setFormData({ ...formData, [name]: Array.from(files) }); // Set additional images
+                setFormData({ ...formData, additionalImages: Array.from(files) }); // Set additional images
             }
         } else if (name === 'price') {
             const numericValue = value.replace(/[^0-9]/g, '');
@@ -45,7 +45,7 @@ function ListProperty({ addListing }) {
         // Create a FormData object to handle file uploads (main image + additional images)
         const formDataToSend = new FormData();
         const title = `${formData.bedrooms} Bedroom ${formData.propertyType}`;
-        
+
         // Append form data for property details
         formDataToSend.append('title', title);
         formDataToSend.append('description', formData.description);
@@ -54,7 +54,7 @@ function ListProperty({ addListing }) {
         formDataToSend.append('bedrooms', formData.bedrooms);
         formDataToSend.append('bathrooms', formData.bathrooms);
         formDataToSend.append('squareFootage', formData.squareFootage);
-        
+
         // Append the main image file
         if (formData.mainImage) {
             formDataToSend.append('mainImage', formData.mainImage);
@@ -66,15 +66,13 @@ function ListProperty({ addListing }) {
         });
 
         try {
-            // Fetch request to the server (server.js) to handle file upload and store data in JSON
             const response = await fetch('https://test-backend-d88x.onrender.com/api/listings', {
                 method: 'POST',
                 body: formDataToSend,
             });
 
             if (response.status === 201) {
-                // Trigger listing update after submission
-                addListing();
+                addListing(); // Trigger listing update after submission
                 window.alert('Listing submitted successfully!');
                 navigate('/'); // Redirect to Home after submission
             } else {

@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs').promises;
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner'); // Add this for presigned URLs
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const app = express();
 app.use(cors());
@@ -27,11 +27,11 @@ const generatePresignedUrl = async (fileName, fileType) => {
     Bucket: 'test-listing-image',
     Key: fileName,
     ContentType: fileType,
-    ACL: 'public-read',  // Optional, sets file to be publicly readable
+    ACL: 'public-read',
   };
 
   const command = new PutObjectCommand(params);
-  const url = await getSignedUrl(s3, command, { expiresIn: 3600 }); // URL valid for 1 hour
+  const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
   return url;
 };
 
@@ -60,7 +60,7 @@ const writeJsonFile = async (file, data) => {
 app.post('/api/upload-url', async (req, res) => {
   try {
     const { fileName, fileType } = req.body;
-    const uniqueFileName = `${uuidv4()}${path.extname(fileName)}`; // Create a unique name for the file
+    const uniqueFileName = `${uuidv4()}${path.extname(fileName)}`;
     const url = await generatePresignedUrl(uniqueFileName, fileType);
 
     res.status(200).json({ url, fileName: uniqueFileName });
@@ -69,10 +69,10 @@ app.post('/api/upload-url', async (req, res) => {
     res.status(500).json({ message: 'Server error: Unable to generate pre-signed URL' });
   }
 });
-
-// Insert listing with image URLs (no direct uploads here, use pre-signed URLs)
 app.post('/api/listings', async (req, res) => {
   try {
+    console.log(req.body);  // Log the received data to debug
+
     const { title, description, price, address, bedrooms, bathrooms, squareFootage, mainImage, additionalImages } = req.body;
 
     const newListing = {
@@ -88,7 +88,7 @@ app.post('/api/listings', async (req, res) => {
       additionalImages // Array of S3 URLs
     };
 
-    // Save newListing to your listings JSON or database
+    // Read existing listings from JSON and append new listing
     const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
     listings.push(newListing);
     await writeJsonFile(path.join(__dirname, 'data', 'listings.json'), listings);
