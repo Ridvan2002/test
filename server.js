@@ -12,18 +12,38 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Configure AWS SDK v3 S3 client
-const s3 = new S3Client({
-  region: process.env.AWS_REGION || 'us-east-1',
+// Configure AWS SDK v3
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || 'us-east-1', // Add fallback region
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
 
-// Set up multer to handle file uploads locally
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
+// Set up multer for file uploads (locally, before sending to S3)
+const upload = multer({
+  storage: multer.memoryStorage(), // Store files in memory before uploading to S3
+});
+
+// Helper function to upload file to S3
+const uploadToS3 = async (file, bucketName, key) => {
+  try {
+    const command = new PutObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      ACL: 'public-read', // Make the file publicly readable
+    });
+
+    await s3Client.send(command);
+    return `https://${bucketName}.s3.amazonaws.com/${key}`;
+  } catch (err) {
+    console.error('Error uploading file to S3:', err);
+    throw err;
+  }
+};
 
 // Helper function to read JSON data
 const readJsonFile = async (file) => {
@@ -46,67 +66,56 @@ const writeJsonFile = async (file, data) => {
   }
 };
 
-// Upload file to S3 using AWS SDK v3
-const uploadToS3 = async (fileBuffer, fileName, fileMimeType) => {
-  const uploadParams = {
-    Bucket: 'test-listing-image', // Hardcoded S3 bucket name
-    Key: fileName, // File name
-    Body: fileBuffer, // File buffer
-    ContentType: fileMimeType, // File type
-    ACL: 'public-read', // Make the uploaded files publicly readable
-  };
-
-  try {
-    const data = await s3.send(new PutObjectCommand(uploadParams));
-    return `https://${uploadParams.Bucket}.s3.amazonaws.com/${fileName}`; // Return the public URL for the file
-  } catch (err) {
-    console.error('Error uploading file to S3:', err);
-    throw new Error('Error uploading file to S3');
-  }
-};
-
 // Insert listing with images uploading to S3
-app.post('/api/listings', upload.fields([{ name: 'mainImage', maxCount: 1 }, { name: 'additionalImages', maxCount: 10 }]), async (req, res) => {
-  try {
-    const { title, description, price, address, bedrooms, bathrooms, squareFootage } = req.body;
-    const newListing = {
-      id: uuidv4(),
-      title,
-      description,
-      price,
-      address,
-      bedrooms,
-      bathrooms,
-      squareFootage,
-      mainImage: '',
-      additionalImages: [],
-    };
-
-    // Upload the main image if available
-    if (req.files.mainImage && req.files.mainImage[0]) {
-      const file = req.files.mainImage[0];
-      newListing.mainImage = await uploadToS3(file.buffer, uuidv4() + path.extname(file.originalname), file.mimetype);
-    }
-
-    // Upload additional images if available
-    if (req.files.additionalImages) {
-      for (const file of req.files.additionalImages) {
-        const imageUrl = await uploadToS3(file.buffer, uuidv4() + path.extname(file.originalname), file.mimetype);
-        newListing.additionalImages.push(imageUrl);
+app.post(
+  '/api/listings',
+  upload.fields([{ name: 'mainImage', maxCount: 1 }, { name: 'additionalImages', maxCount: 10 }]),
+  async (req, res) => {
+    try {
+      const { title, description, price, address, bedrooms, bathrooms, squareFootage } = req.body;
+      
+      // Upload main image
+      let mainImageUrl = '';
+      if (req.files.mainImage) {
+        const mainImageKey = `${uuidv4()}${path.extname(req.files.mainImage[0].originalname)}`;
+        mainImageUrl = await uploadToS3(req.files.mainImage[0], 'test-listing-image', mainImageKey);
       }
+
+      // Upload additional images
+      const additionalImagesUrls = [];
+      if (req.files.additionalImages) {
+        for (const file of req.files.additionalImages) {
+          const additionalImageKey = `${uuidv4()}${path.extname(file.originalname)}`;
+          const imageUrl = await uploadToS3(file, 'test-listing-image', additionalImageKey);
+          additionalImagesUrls.push(imageUrl);
+        }
+      }
+
+      const newListing = {
+        id: uuidv4(),
+        title,
+        description,
+        price,
+        address,
+        bedrooms,
+        bathrooms,
+        squareFootage,
+        mainImage: mainImageUrl, // S3 URL for main image
+        additionalImages: additionalImagesUrls, // S3 URLs for additional images
+      };
+
+      // Save newListing to your listings JSON or database
+      const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
+      listings.push(newListing);
+      await writeJsonFile(path.join(__dirname, 'data', 'listings.json'), listings);
+
+      res.status(201).json({ message: 'Listing and images created successfully', newListing });
+    } catch (error) {
+      console.error('Error creating listing:', error.message);
+      res.status(500).json({ message: 'Server error: Unable to create listing' });
     }
-
-    // Save the new listing in JSON
-    const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
-    listings.push(newListing);
-    await writeJsonFile(path.join(__dirname, 'data', 'listings.json'), listings);
-
-    res.status(201).json({ message: 'Listing and images created successfully', newListing });
-  } catch (error) {
-    console.error('Error creating listing:', error.message);
-    res.status(500).json({ message: 'Server error: Unable to create listing' });
   }
-});
+);
 
 // Get listings and their associated images
 app.get('/api/listings', async (req, res) => {
@@ -162,54 +171,6 @@ app.post('/api/login', async (req, res) => {
   } catch (error) {
     console.error('Error logging in user:', error.message);
     res.status(500).json({ message: 'Server error: Unable to login' });
-  }
-});
-
-// Create Wishlist
-app.post('/api/wishlist', async (req, res) => {
-  try {
-    const { userId, propertyId } = req.body;
-    const wishlist = await readJsonFile(path.join(__dirname, 'data', 'wishlist.json'));
-
-    wishlist.push({ userId, propertyId });
-    await writeJsonFile(path.join(__dirname, 'data', 'wishlist.json'), wishlist);
-    res.status(201).json({ message: 'Property added to wishlist.' });
-  } catch (error) {
-    console.error('Error adding to wishlist:', error.message);
-    res.status(500).json({ message: 'Server error: Unable to add to wishlist' });
-  }
-});
-
-// Remove from Wishlist
-app.delete('/api/wishlist', async (req, res) => {
-  try {
-    const { userId, propertyId } = req.body;
-    const wishlist = await readJsonFile(path.join(__dirname, 'data', 'wishlist.json'));
-
-    const updatedWishlist = wishlist.filter(item => !(item.userId === userId && item.propertyId === propertyId));
-
-    await writeJsonFile(path.join(__dirname, 'data', 'wishlist.json'), updatedWishlist);
-    res.status(200).json({ message: 'Property removed from wishlist.' });
-  } catch (error) {
-    console.error('Error removing from wishlist:', error.message);
-    res.status(500).json({ message: 'Server error: Unable to remove from wishlist' });
-  }
-});
-
-// Fetch Wishlist
-app.get('/api/wishlist/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const wishlist = await readJsonFile(path.join(__dirname, 'data', 'wishlist.json'));
-    const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
-
-    const userWishlist = wishlist.filter((item) => item.userId === parseInt(userId));
-    const userListings = userWishlist.map((item) => listings.find((listing) => listing.id === item.propertyId));
-
-    res.json(userListings);
-  } catch (error) {
-    console.error('Error fetching wishlist:', error.message);
-    res.status(500).json({ message: 'Server error: Unable to fetch wishlist' });
   }
 });
 
