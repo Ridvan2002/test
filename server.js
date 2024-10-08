@@ -7,6 +7,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
+const fs = require('fs').promises;
 
 const app = express();
 app.use(cors());
@@ -16,7 +17,7 @@ app.use(bodyParser.json());
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION, // Replace with your region if not using env variable
+  region: process.env.AWS_REGION, // Region for your AWS services
 });
 
 // Create an S3 instance
