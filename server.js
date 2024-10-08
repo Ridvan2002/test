@@ -27,7 +27,7 @@ const s3 = new AWS.S3();
 const upload = multer({
   storage: multerS3({
     s3: s3,
-    bucket: process.env.AWS_BUCKET_NAME, // S3 bucket name from environment variable
+    bucket: 'test-listing-image', // Hardcoded S3 bucket name
     acl: 'public-read', // Make the uploaded files publicly readable
     key: function (req, file, cb) {
       const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
