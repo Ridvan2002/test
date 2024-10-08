@@ -1,7 +1,6 @@
 const express = require('express');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3'); // AWS SDK v3
 const multer = require('multer');
-const multerS3 = require('multer-s3');
 const path = require('path');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -22,18 +21,9 @@ const s3 = new S3Client({
   },
 });
 
-// Set up multer to upload files to S3 using AWS SDK v3
-const upload = multer({
-  storage: multerS3({
-    s3: s3,
-    bucket: 'test-listing-image', // Hardcoded S3 bucket name
-    acl: 'public-read',
-    key: function (req, file, cb) {
-      const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-      cb(null, uniqueName);
-    },
-  }),
-});
+// Set up multer to handle file uploads locally
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 // Helper function to read JSON data
 const readJsonFile = async (file) => {
@@ -56,40 +46,29 @@ const writeJsonFile = async (file, data) => {
   }
 };
 
-// Insert listing with images uploading to S3
-app.post('/api/listings', upload.fields([{ name: 'mainImage', maxCount: 1 }, { name: 'additionalImages', maxCount: 10 }]), async (req, res) => {
+// Upload file to S3 using AWS SDK v3
+const uploadToS3 = async (fileBuffer, fileName, fileMimeType) => {
+  const uploadParams = {
+    Bucket: 'test-listing-image', // Hardcoded S3 bucket name
+    Key: fileName, // File name
+    Body: fileBuffer, // File buffer
+    ContentType: fileMimeType, // File type
+    ACL: 'public-read', // Make the uploaded files publicly readable
+  };
+
   try {
-    const { title, description, price, address, bedrooms, bathrooms, squareFootage } = req.body;
-
-    const newListing = {
-      id: uuidv4(),
-      title,
-      description,
-      price,
-      address,
-      bedrooms,
-      bathrooms,
-      squareFootage,
-      mainImage: req.files.mainImage ? req.files.mainImage[0].location : '', // S3 URL for main image
-      additionalImages: req.files.additionalImages ? req.files.additionalImages.map(file => file.location) : [], // S3 URLs for additional images
-    };
-
-    const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
-    listings.push(newListing);
-    await writeJsonFile(path.join(__dirname, 'data', 'listings.json'), listings);
-
-    res.status(201).json({ message: 'Listing and images created successfully', newListing });
-  } catch (error) {
-    console.error('Error creating listing:', error.message);
-    res.status(500).json({ message: 'Server error: Unable to create listing' });
+    const data = await s3.send(new PutObjectCommand(uploadParams));
+    return `https://${uploadParams.Bucket}.s3.amazonaws.com/${fileName}`; // Return the public URL for the file
+  } catch (err) {
+    console.error('Error uploading file to S3:', err);
+    throw new Error('Error uploading file to S3');
   }
-});
+};
 
 // Insert listing with images uploading to S3
 app.post('/api/listings', upload.fields([{ name: 'mainImage', maxCount: 1 }, { name: 'additionalImages', maxCount: 10 }]), async (req, res) => {
   try {
     const { title, description, price, address, bedrooms, bathrooms, squareFootage } = req.body;
-
     const newListing = {
       id: uuidv4(),
       title,
@@ -99,10 +78,25 @@ app.post('/api/listings', upload.fields([{ name: 'mainImage', maxCount: 1 }, { n
       bedrooms,
       bathrooms,
       squareFootage,
-      mainImage: req.files.mainImage ? req.files.mainImage[0].location : '', // S3 URL for main image
-      additionalImages: req.files.additionalImages ? req.files.additionalImages.map(file => file.location) : [], // S3 URLs for additional images
+      mainImage: '',
+      additionalImages: [],
     };
 
+    // Upload the main image if available
+    if (req.files.mainImage && req.files.mainImage[0]) {
+      const file = req.files.mainImage[0];
+      newListing.mainImage = await uploadToS3(file.buffer, uuidv4() + path.extname(file.originalname), file.mimetype);
+    }
+
+    // Upload additional images if available
+    if (req.files.additionalImages) {
+      for (const file of req.files.additionalImages) {
+        const imageUrl = await uploadToS3(file.buffer, uuidv4() + path.extname(file.originalname), file.mimetype);
+        newListing.additionalImages.push(imageUrl);
+      }
+    }
+
+    // Save the new listing in JSON
     const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
     listings.push(newListing);
     await writeJsonFile(path.join(__dirname, 'data', 'listings.json'), listings);
