@@ -1,6 +1,5 @@
 const express = require('express');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-const multer = require('multer');
 const path = require('path');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -98,6 +97,18 @@ app.post('/api/listings', async (req, res) => {
   } catch (error) {
     console.error('Error creating listing:', error.message);
     res.status(500).json({ message: 'Server error: Unable to create listing' });
+  }
+});
+
+// **GET route to fetch all listings**
+app.get('/api/listings', async (req, res) => {
+  try {
+    // Read listings from the JSON file (or database)
+    const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
+    res.status(200).json(listings);  // Respond with the listings in JSON format
+  } catch (error) {
+    console.error('Error fetching listings:', error.message);
+    res.status(500).json({ message: 'Server error: Unable to fetch listings' });
   }
 });
 
