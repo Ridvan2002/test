@@ -2,14 +2,16 @@ const express = require('express');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const path = require('path');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs').promises;
-const multer = require('multer'); // Import multer
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+const multer = require('multer'); // Add multer for handling form data
 
 const app = express();
 app.use(cors());
+app.use(bodyParser.json());
 
 // Configure AWS SDK v3 S3Client
 const s3 = new S3Client({
@@ -20,7 +22,7 @@ const s3 = new S3Client({
   },
 });
 
-// Multer configuration
+// Configure multer for file handling (not necessary for presigned URL uploads but keeping it for form parsing)
 const upload = multer();
 
 // Helper function to generate pre-signed URL
@@ -75,9 +77,25 @@ app.post('/api/upload-url', async (req, res) => {
 // Insert listing with image URLs (handling files using multer)
 app.post('/api/listings', upload.none(), async (req, res) => {
   try {
-    console.log(req.body);  // Log the received data to debug
+    // Log the entire req.body to see what the frontend sends
+    console.log("Received form data:", req.body);
 
     const { title, description, price, address, bedrooms, bathrooms, squareFootage, mainImage, additionalImages } = req.body;
+
+    // Log the individual fields to verify the presence of each field
+    console.log("Title:", title);
+    console.log("Description:", description);
+    console.log("Price:", price);
+    console.log("Address:", address);
+    console.log("Bedrooms:", bedrooms);
+    console.log("Bathrooms:", bathrooms);
+    console.log("Square Footage:", squareFootage);
+    console.log("Main Image URL:", mainImage);
+    console.log("Additional Images URLs:", additionalImages);
+
+    // Read the existing listings to log before updating
+    const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
+    console.log("Listings before adding new one:", listings);
 
     const newListing = {
       id: uuidv4(),
@@ -88,14 +106,16 @@ app.post('/api/listings', upload.none(), async (req, res) => {
       bedrooms,
       bathrooms,
       squareFootage,
-      mainImage,  // URL returned from S3 pre-signed upload
-      additionalImages // Array of S3 URLs
+      mainImage,
+      additionalImages,
     };
 
-    // Read existing listings from JSON and append new listing
-    const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
+    // Add new listing
     listings.push(newListing);
+
+    // Write the updated listings to the file
     await writeJsonFile(path.join(__dirname, 'data', 'listings.json'), listings);
+    console.log("Listings after adding new one:", listings);
 
     res.status(201).json({ message: 'Listing created successfully', newListing });
   } catch (error) {
@@ -104,19 +124,18 @@ app.post('/api/listings', upload.none(), async (req, res) => {
   }
 });
 
-// **GET route to fetch all listings**
+// GET route to fetch all listings
 app.get('/api/listings', async (req, res) => {
   try {
-    // Read listings from the JSON file (or database)
     const listings = await readJsonFile(path.join(__dirname, 'data', 'listings.json'));
-    res.status(200).json(listings);  // Respond with the listings in JSON format
+    res.status(200).json(listings);
   } catch (error) {
     console.error('Error fetching listings:', error.message);
     res.status(500).json({ message: 'Server error: Unable to fetch listings' });
   }
 });
 
-// User Registration (remains the same)
+// User Registration (unchanged)
 app.post('/api/register', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -139,7 +158,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// User Login (remains the same)
+// User Login (unchanged)
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;

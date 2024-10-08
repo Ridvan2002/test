@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import './styles/ListProperty.css';
 import { useNavigate } from 'react-router-dom';
+import './styles/ListProperty.css';
+import api from './utils/api'; // Your Axios instance
 
 function ListProperty({ addListing }) {
     const [formData, setFormData] = useState({
@@ -17,6 +18,7 @@ function ListProperty({ addListing }) {
     const [displayPrice, setDisplayPrice] = useState('');
     const navigate = useNavigate();
 
+    // Handle changes in form inputs
     const handleChange = (e) => {
         const { name, value, type, files } = e.target;
         if (type === 'file') {
@@ -34,19 +36,20 @@ function ListProperty({ addListing }) {
         }
     };
 
+    // Format price to display with dollar sign
     const formatPrice = (value) => {
         if (!value) return '';
         return `$${parseInt(value, 10).toLocaleString()}`;
     };
 
+    // Submit form data
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Create a FormData object to handle file uploads (main image + additional images)
         const formDataToSend = new FormData();
         const title = `${formData.bedrooms} Bedroom ${formData.propertyType}`;
-
-        // Append form data for property details
+        
+        // Append form fields to FormData object
         formDataToSend.append('title', title);
         formDataToSend.append('description', formData.description);
         formDataToSend.append('price', formData.price);
@@ -54,27 +57,24 @@ function ListProperty({ addListing }) {
         formDataToSend.append('bedrooms', formData.bedrooms);
         formDataToSend.append('bathrooms', formData.bathrooms);
         formDataToSend.append('squareFootage', formData.squareFootage);
-
-        // Append the main image file
+        
+        // Append files (main image + additional images)
         if (formData.mainImage) {
             formDataToSend.append('mainImage', formData.mainImage);
         }
-
-        // Append additional image files
         formData.additionalImages.forEach((file) => {
             formDataToSend.append('additionalImages', file);
         });
 
         try {
-            const response = await fetch('https://test-backend-d88x.onrender.com/api/listings', {
-                method: 'POST',
-                body: formDataToSend,
-            });
+            // Send request to the backend using Axios instance
+            const response = await api.post('/listings', formDataToSend);
 
             if (response.status === 201) {
-                addListing(); // Trigger listing update after submission
+                // Handle successful listing submission
+                addListing(); // Update listing
                 window.alert('Listing submitted successfully!');
-                navigate('/'); // Redirect to Home after submission
+                navigate('/'); // Redirect to home page after submission
             } else {
                 window.alert('Failed to submit the listing.');
             }
