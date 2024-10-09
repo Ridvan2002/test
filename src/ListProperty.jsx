@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles/ListProperty.css';
-import api from './utils/api'; // Your Axios instance
+import api from './utils/api';
 
 function ListProperty({ addListing }) {
     const [formData, setFormData] = useState({
@@ -11,23 +11,17 @@ function ListProperty({ addListing }) {
         bathrooms: '',
         squareFootage: '',
         price: '',
-        description: '',
-        mainImage: null, // Main image file
-        additionalImages: [] // Additional image files
+        description: ''
     });
+    const [mainImage, setMainImage] = useState(null);
+    const [additionalImages, setAdditionalImages] = useState([]);
     const [displayPrice, setDisplayPrice] = useState('');
     const navigate = useNavigate();
 
     // Handle changes in form inputs
     const handleChange = (e) => {
-        const { name, value, type, files } = e.target;
-        if (type === 'file') {
-            if (name === 'mainImage') {
-                setFormData({ ...formData, mainImage: files[0] }); // Set main image
-            } else if (name === 'additionalImages') {
-                setFormData({ ...formData, additionalImages: Array.from(files) }); // Set additional images
-            }
-        } else if (name === 'price') {
+        const { name, value } = e.target;
+        if (name === 'price') {
             const numericValue = value.replace(/[^0-9]/g, '');
             setFormData({ ...formData, price: numericValue });
             setDisplayPrice(formatPrice(numericValue));
@@ -36,7 +30,16 @@ function ListProperty({ addListing }) {
         }
     };
 
-    // Format price to display with dollar sign
+    // Handle image changes
+    const handleMainImageChange = (e) => {
+        setMainImage(e.target.files[0]); // Set main image file
+    };
+
+    const handleAdditionalImagesChange = (e) => {
+        setAdditionalImages(Array.from(e.target.files)); // Set additional image files
+    };
+
+    // Format price to display with a dollar sign
     const formatPrice = (value) => {
         if (!value) return '';
         return `$${parseInt(value, 10).toLocaleString()}`;
@@ -45,33 +48,43 @@ function ListProperty({ addListing }) {
     // Submit form data
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        const formDataToSend = new FormData();
-        const title = `${formData.bedrooms} Bedroom ${formData.propertyType}`;
         
-        // Append form fields to FormData object
-        formDataToSend.append('title', title);
-        formDataToSend.append('description', formData.description);
-        formDataToSend.append('price', formData.price);
+        const formDataToSend = new FormData(); // Create FormData object to send files
+        
+        // Append form data
         formDataToSend.append('address', formData.address);
+        formDataToSend.append('propertyType', formData.propertyType);
         formDataToSend.append('bedrooms', formData.bedrooms);
         formDataToSend.append('bathrooms', formData.bathrooms);
         formDataToSend.append('squareFootage', formData.squareFootage);
-        
-        // Append files (main image + additional images)
-        if (formData.mainImage) {
-            formDataToSend.append('mainImage', formData.mainImage);
+        formDataToSend.append('price', formData.price);
+        formDataToSend.append('description', formData.description);
+
+        // Append images
+        if (mainImage) {
+            formDataToSend.append('mainImage', mainImage); // Append main image
         }
-        formData.additionalImages.forEach((file) => {
-            formDataToSend.append('additionalImages', file);
+        additionalImages.forEach((file, index) => {
+            formDataToSend.append(`additionalImages`, file); // Append additional images
         });
+
+        // Log form data for debugging
+        for (let [key, value] of formDataToSend.entries()) {
+            console.log(`${key}:`, value);
+        }
 
         try {
             // Send request to the backend using Axios instance
-            const response = await api.post('/listings', formDataToSend);
+            const response = await api.post('/listings', formDataToSend, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            // Log response for debugging
+            console.log('Response from backend:', response);
 
             if (response.status === 201) {
-                // Handle successful listing submission
                 addListing(); // Update listing
                 window.alert('Listing submitted successfully!');
                 navigate('/'); // Redirect to home page after submission
@@ -88,6 +101,7 @@ function ListProperty({ addListing }) {
         <div className="list-property-form">
             <h1>List Your Property</h1>
             <form onSubmit={handleSubmit}>
+                {/* Form fields for property data */}
                 <div>
                     <label>Address:</label>
                     <input
@@ -170,7 +184,7 @@ function ListProperty({ addListing }) {
                     <input
                         type="file"
                         name="mainImage"
-                        onChange={handleChange}
+                        onChange={handleMainImageChange}
                     />
                 </div>
 
@@ -180,7 +194,7 @@ function ListProperty({ addListing }) {
                         type="file"
                         name="additionalImages"
                         multiple
-                        onChange={handleChange}
+                        onChange={handleAdditionalImagesChange}
                     />
                 </div>
 

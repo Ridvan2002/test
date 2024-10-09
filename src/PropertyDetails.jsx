@@ -4,13 +4,14 @@ import { useAuth } from './context/AuthContext';
 import './styles/PropertyDetails.css';
 
 function PropertyDetails({ listings, handleOpenAuthModal, onBuy }) {
-    const { id } = useParams();
-    const property = listings.find((listing) => listing.id === parseInt(id));
+    const { id } = useParams();  // Extract the id from the URL params
+    const property = listings.find((listing) => listing.id === id); // Match `id` as a string
+    
     const { isLoggedIn } = useAuth();
-
     const [visibleImages, setVisibleImages] = useState(0); // State to track visible images in the gallery
     const [lightboxImage, setLightboxImage] = useState(null); // State for lightbox view
 
+    // Check if the property was found, otherwise show a message
     if (!property) {
         return <p>Property not found.</p>;
     }
@@ -48,38 +49,45 @@ function PropertyDetails({ listings, handleOpenAuthModal, onBuy }) {
     // Format price using toLocaleString()
     const formattedPrice = `$${parseInt(property.price, 10).toLocaleString()}`;
 
-    // Construct image URLs for main and additional images
-    const mainImageUrl = `https://test-backend-d88x.onrender.com/${property.image}`; // Main image URL from your server
-    const additionalImageUrls = property.additionalImages.map(image => `https://test-backend-d88x.onrender.com/${image}`); // Additional image URLs from your server
+    // Construct image URLs for main and additional images, with fallback to an empty array
+    const mainImageUrl = property.mainImage ? `https://test-backend-d88x.onrender.com/uploads/${property.mainImage}` : ''; // Main image URL from your server
+    const additionalImageUrls = (property.additionalImages || []).map(image => `https://test-backend-d88x.onrender.com/uploads/${image}`);
 
     return (
         <div className="property-details-page">
             <h1 className="property-title">{property.title}</h1>
             <div className="details-container">
-                <img src={mainImageUrl} alt={property.title} className="main-image" />
-                <div className="image-gallery">
-                    {additionalImageUrls.length > 3 && (
-                        <button className="nav-button" onClick={showPreviousImage} disabled={visibleImages === 0}>
-                            &uarr;
-                        </button>
-                    )}
-                    <div className="gallery-images">
-                        {additionalImageUrls.slice(visibleImages, visibleImages + 3).map((imgSrc, index) => (
-                            <img 
-                                key={index} 
-                                src={imgSrc} 
-                                alt={`${property.title} - ${index + 1}`} 
-                                className="gallery-image"
-                                onClick={() => openLightbox(imgSrc)}
-                            />
-                        ))}
+                {mainImageUrl ? (
+                    <img src={mainImageUrl} alt={property.title} className="main-image" />
+                ) : (
+                    <p>No main image available</p>
+                )}
+
+                {additionalImageUrls.length > 0 && (
+                    <div className="image-gallery">
+                        {additionalImageUrls.length > 3 && (
+                            <button className="nav-button" onClick={showPreviousImage} disabled={visibleImages === 0}>
+                                &uarr;
+                            </button>
+                        )}
+                        <div className="gallery-images">
+                            {additionalImageUrls.slice(visibleImages, visibleImages + 3).map((imgSrc, index) => (
+                                <img 
+                                    key={index} 
+                                    src={imgSrc} 
+                                    alt={`${property.title} - ${index + 1}`} 
+                                    className="gallery-image"
+                                    onClick={() => openLightbox(imgSrc)}
+                                />
+                            ))}
+                        </div>
+                        {additionalImageUrls.length > 3 && (
+                            <button className="nav-button" onClick={showNextImage} disabled={visibleImages >= additionalImageUrls.length - 3}>
+                                &darr;
+                            </button>
+                        )}
                     </div>
-                    {additionalImageUrls.length > 3 && (
-                        <button className="nav-button" onClick={showNextImage} disabled={visibleImages >= additionalImageUrls.length - 3}>
-                            &darr;
-                        </button>
-                    )}
-                </div>
+                )}
             </div>
             <div className="property-info">
                 <p><strong>Price:</strong> {formattedPrice}</p> {/* Formatted price */}
