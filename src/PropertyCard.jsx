@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './context/AuthContext'; 
 import './styles/PropertyCard.css';
 
-// Utility function to format the price for display
 const formatPriceForDisplay = (price) => {
     if (!price) return '';
     const numberPrice = parseInt(price, 10);
@@ -12,28 +11,49 @@ const formatPriceForDisplay = (price) => {
 
 function PropertyCard({ property, addToWishlist, removeFromWishlist, isWishlist, handleOpenAuthModal }) {
     const navigate = useNavigate();
-    const { isLoggedIn } = useAuth(); 
+    const { isLoggedIn, userId } = useAuth();
 
-    const handleAddToWishlist = () => {
+    const handleAddToWishlist = async () => {
         if (!isLoggedIn) {
-            handleOpenAuthModal('/wishlist'); // Open authentication modal if not logged in
+            handleOpenAuthModal('/wishlist'); 
         } else {
-            addToWishlist(property); // Add property to wishlist
-            navigate('/wishlist'); // Navigate to wishlist page
+            try {
+                console.log("Sending userId:", userId, "and id:", property.id); 
+    
+                const response = await fetch('http://localhost:5000/api/wishlist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userId, id: property.id }), 
+                });
+    
+                if (response.ok) {
+                    console.log('Property added to wishlist successfully');
+                    addToWishlist(property);  
+                    navigate('/wishlist');
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error adding to wishlist:', errorData.message);
+                }
+            } catch (error) {
+                console.error('Error adding to wishlist:', error);
+            }
         }
-    };
-
+    };    
+    
+    
     const handleRemoveFromWishlist = () => {
-        removeFromWishlist(property); // Remove property from wishlist
+        removeFromWishlist(property.id); 
     };
 
     return (
         <div className="property-card">
-            <img src={`https://test-backend-d88x.onrender.com/${property.image}`} alt={property.title} className="property-image" />
+            <img src={property.mainImage ? `http://localhost:5000${property.mainImage}` : '/default-image.jpg'} alt={property.title || 'Property'} className="property-image" />
             <div className="property-details">
-                <h2>{property.title}</h2>
+                <h2>{property.title ? property.title : `${property.bedrooms}-bedroom ${property.propertyType}`}</h2>
                 <p>{property.address}</p>
-                <p><strong>Price:</strong> {formatPriceForDisplay(property.price)}</p> {/* Display formatted price */}
+                <p><strong>Price:</strong> {formatPriceForDisplay(property.price)}</p>
                 <div className="property-actions">
                     <Link to={`/property/${property.id}`} className="btn-primary">Details</Link>
                     {isWishlist ? (

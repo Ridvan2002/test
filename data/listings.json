@@ -1,1 +1,173 @@
-[]
+[
+  {
+    "id": "1ada17a7-b3c7-4f8d-b93c-bca3a0cb77ed",
+    "title": "5-bedroom House",
+    "description": "This beautiful 5-bedroom house is perfect for a family looking for a spacious living space in a friendly neighborhood. The house features a large backyard, modern kitchen, and spacious bedrooms. It is located in a quiet area with easy access to schools, parks, and shopping centers. The master bedroom comes with an ensuite bathroom and walk-in closet. The home also includes a two-car garage, a fully-finished basement, and a large deck perfect for family gatherings.",
+    "price": "2900000",
+    "address": "2312 Montview Dr NW, Atlanta, GA 30305",
+    "bedrooms": "5",
+    "bathrooms": "4",
+    "squareFootage": "4500",
+    "mainImage": "/uploads/image1.jpg",
+    "additionalImages": [
+      "/uploads/image1_1.jpg",
+      "/uploads/image1_2.jpg",
+      "/uploads/image1_3.jpg",
+      "/uploads/image1_4.jpg",
+      "/uploads/image1_5.jpg",
+      "/uploads/image1_6.jpg"
+    ]
+  },
+  {
+    "id": "0a51a3a4-c288-43eb-b85c-ddcd04975c12",
+    "title": "5-bedroom House",
+    "description": "This impressive 5 bedroom, 3 bathroom house is a dream come true for anyone who values space, comfort, and luxury. Equipped with central air conditioning, a large kitchen with stainless steel appliances, and spacious garage with room for multiple vehicles, this property offers everything you need for a comfortable lifestyle. Each of the five bedrooms is generously sized, with the master featuring an en-suite bathroom with a soaking tub and separate shower. Whether you are entertaining guests in the formal dining area, relaxing in the living room, or enjoying the covered patio in the backyard, this house is the perfect place to call home.",
+    "price": "420000",
+    "address": "842 Cascade Xing SW, Atlanta, GA 30331",
+    "bedrooms": "5",
+    "bathrooms": "3",
+    "squareFootage": "3500",
+    "mainImage": "/uploads/image2.jpg",
+    "additionalImages": [
+      "/uploads/image2_1.jpg",
+      "/uploads/image2_2.jpg",
+      "/uploads/image2_3.jpg",
+      "/uploads/image2_4.jpg",
+      "/uploads/image2_5.jpg",
+      "/uploads/image2_6.jpg"
+    ]
+  },
+  {
+    "id": "a86f7a6d-0d44-418f-b588-7e0518c48961",
+    "title": "3-bedroom House",
+    "description": "This 3-bedroom house offers great value for families or first-time homebuyers. The property features a spacious front and back yard, ideal for kids or pets. It has a modern kitchen, a cozy living room, and two full bathrooms. The location is convenient with nearby schools, shopping centers, and public transportation. The home is move-in ready with recent updates including new flooring and paint.",
+    "price": "325000",
+    "address": "3666 Garrison Dr SW, Atlanta, GA 30331",
+    "bedrooms": "3",
+    "bathrooms": "2",
+    "squareFootage": "2200",
+    "mainImage": "/uploads/image3.jpg",
+    "additionalImages": [
+      "/uploads/image3_1.jpg",
+      "/uploads/image3_2.jpg",
+      "/uploads/image3_3.jpg",
+      "/uploads/image3_4.jpg",
+      "/uploads/image3_5.jpg",
+      "/uploads/image3_6.jpg"
+    ]
+  },
+  {
+    "id": "619a0a9c-3a2f-4b72-baf7-d0b3fc18d924",
+    "title": "2-bedroom Condo",
+    "description": "This 2-bedroom condo is fully furnished and ready for you to move in. It features a modern kitchen, a spacious living area, and two bathrooms. The condo is located in a secure building with amenities such as a gym and swimming pool. It\\'s close to downtown, making it a great option for young professionals or small families. The unit also includes a private laundry room and a balcony with a city view.",
+    "price": "269000",
+    "address": "171 Auburn Ave NE UNIT 521, Atlanta, GA 30303",
+    "bedrooms": "2",
+    "bathrooms": "2",
+    "squareFootage": "1500",
+    "mainImage": "/uploads/image4.jpg",
+    "additionalImages": [
+      "/uploads/image4_1.jpg",
+      "/uploads/image4_2.jpg",
+      "/uploads/image4_3.jpg",
+      "/uploads/image4_4.jpg",
+      "/uploads/image4_5.jpg",
+      "/uploads/image4_6.jpg"
+    ]
+  },
+  {
+    "id": "09d88997-70aa-4017-9b51-523f80834778",
+    "title": "1-bedroom Condo",
+    "description": "This minimalist 1-bedroom condo is perfect for someone looking to downsize or for a first-time homebuyer. The unit is simple yet stylish, with an open-concept living area and a modern kitchen. The bedroom is spacious with a large closet, and the bathroom is sleek with updated fixtures. The condo building offers amenities such as a fitness center and a community lounge.",
+    "price": "165000",
+    "address": "620 Peachtree St NE APT 1801, Atlanta, GA 30308",
+    "bedrooms": "1",
+    "bathrooms": "1",
+    "squareFootage": "900",
+    "mainImage": "/uploads/image5.jpg",
+    "additionalImages": [
+      "/uploads/image5_1.jpg",
+      "/uploads/image5_2.jpg",
+      "/uploads/image5_3.jpg",
+      "/uploads/image5_4.jpg",
+      "/uploads/image5_5.jpg",
+      "/uploads/image5_6.jpg"
+    ]
+  },
+  {
+    "id": "49578455-cbfa-4803-b75c-1250262dbe60",
+    "title": "4-bedroom House",
+    "description": "This 4-bedroom brick house is a classic home with plenty of charm. The property boasts a huge backyard, ideal for gardening or outdoor activities. Inside, you\\'ll find a traditional layout with a formal dining room, a large kitchen, and a cozy living room with a fireplace. The bedrooms are generously sized, and the master bedroom includes an ensuite bathroom. The house is located in a quiet neighborhood, close to parks and schools.",
+    "price": "289000",
+    "address": "2555 County Line Rd SW, Atlanta, GA 30331",
+    "bedrooms": "4",
+    "bathrooms": "3",
+    "squareFootage": "3000",
+    "mainImage": "/uploads/image6.jpg",
+    "additionalImages": [
+      "/uploads/image6_1.jpg",
+      "/uploads/image6_2.jpg",
+      "/uploads/image6_3.jpg",
+      "/uploads/image6_4.jpg",
+      "/uploads/image6_5.jpg",
+      "/uploads/image6_6.jpg"
+    ]
+  },
+  {
+    "id": "8f09875f-28e4-4b4a-94b5-6315ee162dea",
+    "title": "1-bedroom Condo",
+    "description": "This 1-bedroom condo features an industrial design with exposed brick walls and high ceilings. The open-plan layout gives the space a spacious feel, and it\\'s ready for you to add your own personal touches. The building is located in a vibrant area, close to shops, restaurants, and public transport. It\\'s perfect for a single person or a couple looking for a stylish, urban living experience.",
+    "price": "194800",
+    "address": "238 Walker St SW UNIT 31, Atlanta, GA 30313",
+    "bedrooms": "1",
+    "bathrooms": "1",
+    "squareFootage": "950",
+    "mainImage": "/uploads/image7.jpg",
+    "additionalImages": [
+      "/uploads/image7_1.jpg",
+      "/uploads/image7_2.jpg",
+      "/uploads/image7_3.jpg",
+      "/uploads/image7_4.jpg",
+      "/uploads/image7_5.jpg",
+      "/uploads/image7_6.jpg"
+    ]
+  },
+  {
+    "id": "d554ff66-6af7-4699-b900-c90ebb35f95f",
+    "title": "3-bedroom House",
+    "description": "This 3-bedroom house is deceivingly spacious on the inside, with plenty of room for a growing family. The home features a large open-concept kitchen and living area, perfect for entertaining. The bedrooms are well-sized, and the master suite includes a walk-in closet and ensuite bathroom. The backyard is fully fenced, making it a great space for pets or children to play. Located in a family-friendly neighborhood, this home is close to schools and parks.",
+    "price": "325000",
+    "address": "1010 Mc Daniel St SW, Atlanta, GA 30310",
+    "bedrooms": "3",
+    "bathrooms": "2",
+    "squareFootage": "2400",
+    "mainImage": "/uploads/image8.jpg",
+    "additionalImages": [
+      "/uploads/image8_1.jpg",
+      "/uploads/image8_2.jpg",
+      "/uploads/image8_3.jpg",
+      "/uploads/image8_4.jpg",
+      "/uploads/image8_5.jpg",
+      "/uploads/image8_6.jpg"
+    ]
+  },
+  {
+    "id": "981e190b-6407-4ce0-9074-75a857cde451",
+    "title": "3-bedroom House",
+    "description": "This 3-bedroom house is a budget-friendly option for those looking to invest in their first home. While the price is low, the house has plenty of personality with its unique layout and vintage charm. The home features a large living area, a functional kitchen, and three bedrooms. It's located in an up-and-coming neighborhood, making it a great opportunity for those looking to build equity. The property has a large backyard and a detached garage.",
+    "price": "139000",
+    "address": "2924 3rd Ave SW, Atlanta, GA 30315",
+    "bedrooms": "3",
+    "bathrooms": "1",
+    "squareFootage": "1800",
+    "mainImage": "/uploads/image9.jpg",
+    "additionalImages": [
+      "/uploads/image9_1.jpg",
+      "/uploads/image9_2.jpg",
+      "/uploads/image9_3.jpg",
+      "/uploads/image9_4.jpg",
+      "/uploads/image9_5.jpg",
+      "/uploads/image9_6.jpg"
+    ]
+  }
+]

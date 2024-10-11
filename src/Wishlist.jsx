@@ -10,7 +10,10 @@ function Wishlist() {
         const fetchWishlist = async () => {
             if (userId) {
                 try {
-                    const response = await fetch(`https://test-backend-d88x.onrender.com/api/wishlist/${userId}`);
+                    const response = await fetch(`http://localhost:5000/api/wishlist/${userId}`);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
                     const data = await response.json();
                     setWishlist(data);
                 } catch (error) {
@@ -21,19 +24,21 @@ function Wishlist() {
         fetchWishlist();
     }, [userId]);
 
-    const removeFromWishlist = async (propertyId) => {
+    const removeFromWishlist = async (id) => {
         try {
-            // Send a DELETE request to remove the property from the wishlist
-            await fetch('https://test-backend-d88x.onrender.com/api/wishlist', {
+            const response = await fetch('http://localhost:5000/api/wishlist', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ userId, propertyId }),
+                body: JSON.stringify({ userId, id }),
             });
 
-            // Update the state to remove the property from the UI
-            setWishlist(wishlist.filter(item => item.id !== propertyId));
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            setWishlist(prevWishlist => prevWishlist.filter(item => item.id !== id));
         } catch (error) {
             console.error('Error removing from wishlist:', error);
         }

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import api from '../utils/api'; // Assuming you're using Axios instance for API requests
+import api from '../utils/api';
 
 const AuthContext = createContext();
 
@@ -9,14 +9,14 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userId, setUserId] = useState(null); // Store userId
+  const [userId, setUserId] = useState(null);
 
   const login = async (email, password, onClose) => {
     try {
       const response = await api.post('/login', { email, password });
       if (response.status === 200) {
         setIsLoggedIn(true);
-        setUserId(response.data.userId); // Store userId after successful login
+        setUserId(response.data.userId);
         alert('Successfully logged in!');
         onClose();
       }
@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
       const response = await api.post('/register', { email, password });
       if (response.status === 201) {
         setIsLoggedIn(true);
-        setUserId(response.data.userId); // Store userId after successful registration
+        setUserId(response.data.userId);
         alert('Successfully registered!');
         onClose();
       }
@@ -41,7 +41,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setIsLoggedIn(false);
-    setUserId(null); // Clear userId on logout
+    setUserId(null);
     alert('Successfully logged out!');
   };
 

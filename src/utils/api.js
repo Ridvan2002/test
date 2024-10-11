@@ -1,9 +1,18 @@
 import axios from 'axios';
 
-// Set up Axios instance for making requests to your backend
 const api = axios.create({
-  baseURL: 'https://test-backend-d88x.onrender.com/api', // Your backend URL
+  baseURL: 'http://localhost:5000/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-// Use this Axios instance in your requests
+api.interceptors.response.use(
+  (response) => response, 
+  (error) => {
+    console.error('API error occurred:', error.response ? error.response.data : error.message);
+    return Promise.reject(error); 
+  }
+);
+
 export default api;

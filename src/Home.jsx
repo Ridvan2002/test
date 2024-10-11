@@ -4,7 +4,7 @@ import { useAuth } from './context/AuthContext';
 import axios from 'axios';
 
 function Home({ listings, handleOpenAuthModal }) {
-    const { userId, isLoggedIn } = useAuth(); 
+    const { userId, isLoggedIn } = useAuth();
     const [searchQuery, setSearchQuery] = useState('');
     const [filters, setFilters] = useState({
         priceRange: '',
@@ -18,18 +18,31 @@ function Home({ listings, handleOpenAuthModal }) {
         return parseInt(price.replace(/[^0-9]/g, ''), 10);
     };
 
-    const handleAddToWishlist = async (propertyId) => {
+    const handleAddToWishlist = async (property) => {
         if (!isLoggedIn) {
-            handleOpenAuthModal(); 
+            handleOpenAuthModal();
             return;
         }
-
+    
         try {
-            await axios.post('https://test-backend-d88x.onrender.com/api/wishlist', { userId, propertyId });
+            console.log("Sending userId:", userId, "and id:", property.id);
+    
+            const response = await axios.post('http://localhost:5000/api/wishlist', { userId, id: property.id });
+    
+            if (response.status === 201) {
+                console.log('Property added to wishlist successfully');
+            } else if (response.status === 200) {
+                console.log('Property is already in wishlist');
+            }
         } catch (error) {
-            console.error('Error adding to wishlist:', error);
+            if (error.response?.status === 400 && error.response?.data?.message === 'Property already in wishlist') {
+                console.log('Property is already in wishlist, no need to add again');
+            } else {
+                console.error('Error adding to wishlist:', error.response?.data?.message || error.message);
+            }
         }
     };
+    
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
@@ -135,7 +148,7 @@ function Home({ listings, handleOpenAuthModal }) {
                         <PropertyCard
                             key={index}
                             property={property}
-                            addToWishlist={() => handleAddToWishlist(property.id)}
+                            addToWishlist={() => handleAddToWishlist(property)}
                         />
                     ))}
                 </div>

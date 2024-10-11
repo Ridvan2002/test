@@ -30,7 +30,6 @@ function Buy() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setSubmitted(true);
-    // Add logic here to handle the submission, such as sending data to a backend service.
   };
 
   return (
@@ -143,7 +142,7 @@ function Buy() {
 
         <h2>Contact Us</h2>
         <p>If you have any questions, please feel free to contact us at:</p>
-        <p>Email: support@realestateexample.com</p>
+        <p>Email: support@realestate.com</p>
         <p>Phone: (123) 456-7890</p>
       </div>
     </div>

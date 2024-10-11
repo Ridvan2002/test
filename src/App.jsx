@@ -12,20 +12,20 @@ import axios from 'axios';
 
 function App() {
     const isProduction = process.env.NODE_ENV === 'production';
-    const basePath = isProduction ? '/test' : '';  // Adjust for production deployment, e.g., GitHub Pages
+    const basePath = isProduction ? '/test' : '';  
     const [listings, setListings] = useState([]); 
     const [wishlist, setWishlist] = useState([]);
     const [isAuthModalOpen, setAuthModalOpen] = useState(false);
     const [redirectPath, setRedirectPath] = useState('/');
-    const [loading, setLoading] = useState(true);  // Loading state for API calls
-    const [error, setError] = useState(null);      // Error state
+    const [loading, setLoading] = useState(true);  
+    const [error, setError] = useState(null);      
 
-    // Fetch listings from the backend
     const fetchListings = async () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get('https://test-backend-d88x.onrender.com/api/listings'); // Replace with actual backend URL
+            const response = await axios.get('http://localhost:5000/api/listings');
+            console.log('Fetched listings:', response.data);  
             setListings(response.data);
         } catch (error) {
             console.error('Error fetching listings:', error);
@@ -36,17 +36,19 @@ function App() {
     };
 
     useEffect(() => {
-        fetchListings();  // Call API to fetch listings on component mount
+        fetchListings();  
     }, []);
 
-    // Add a new listing (re-fetch listings from the backend)
     const addListing = () => {
         fetchListings(); 
     };
 
     const addToWishlist = (property) => {
         if (!wishlist.some(item => item.id === property.id)) {
+            console.log("Adding property to wishlist:", property);
             setWishlist([...wishlist, property]);
+        } else {
+            console.log("Property already in wishlist in state.");
         }
     };
 
@@ -75,8 +77,8 @@ function App() {
                     handleCloseAuthModal={handleCloseAuthModal}
                     redirectPath={redirectPath}
                     basePath={basePath}
-                    loading={loading}  // Pass loading state
-                    error={error}      // Pass error state
+                    loading={loading}  
+                    error={error}      
                 />
             </Router>
         </AuthProvider>

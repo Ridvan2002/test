@@ -18,7 +18,6 @@ function ListProperty({ addListing }) {
     const [displayPrice, setDisplayPrice] = useState('');
     const navigate = useNavigate();
 
-    // Handle changes in form inputs
     const handleChange = (e) => {
         const { name, value } = e.target;
         if (name === 'price') {
@@ -30,28 +29,27 @@ function ListProperty({ addListing }) {
         }
     };
 
-    // Handle image changes
     const handleMainImageChange = (e) => {
-        setMainImage(e.target.files[0]); // Set main image file
+        setMainImage(e.target.files[0]);
     };
 
     const handleAdditionalImagesChange = (e) => {
-        setAdditionalImages(Array.from(e.target.files)); // Set additional image files
+        const files = Array.from(e.target.files);
+        const sortedFiles = files.sort((a, b) => a.name.localeCompare(b.name));
+        setAdditionalImages(sortedFiles);
+        console.log("Ordered additional images:", sortedFiles); 
     };
+    
 
-    // Format price to display with a dollar sign
     const formatPrice = (value) => {
         if (!value) return '';
         return `$${parseInt(value, 10).toLocaleString()}`;
     };
 
-    // Submit form data
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        const formDataToSend = new FormData(); // Create FormData object to send files
-        
-        // Append form data
+        const formDataToSend = new FormData();
         formDataToSend.append('address', formData.address);
         formDataToSend.append('propertyType', formData.propertyType);
         formDataToSend.append('bedrooms', formData.bedrooms);
@@ -60,34 +58,24 @@ function ListProperty({ addListing }) {
         formDataToSend.append('price', formData.price);
         formDataToSend.append('description', formData.description);
 
-        // Append images
         if (mainImage) {
-            formDataToSend.append('mainImage', mainImage); // Append main image
+            formDataToSend.append('mainImage', mainImage);
         }
-        additionalImages.forEach((file, index) => {
-            formDataToSend.append(`additionalImages`, file); // Append additional images
+        additionalImages.forEach(file => {
+            formDataToSend.append('additionalImages', file);
         });
 
-        // Log form data for debugging
-        for (let [key, value] of formDataToSend.entries()) {
-            console.log(`${key}:`, value);
-        }
-
         try {
-            // Send request to the backend using Axios instance
             const response = await api.post('/listings', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
 
-            // Log response for debugging
-            console.log('Response from backend:', response);
-
             if (response.status === 201) {
-                addListing(); // Update listing
+                addListing();
                 window.alert('Listing submitted successfully!');
-                navigate('/'); // Redirect to home page after submission
+                navigate('/');
             } else {
                 window.alert('Failed to submit the listing.');
             }
@@ -101,7 +89,6 @@ function ListProperty({ addListing }) {
         <div className="list-property-form">
             <h1>List Your Property</h1>
             <form onSubmit={handleSubmit}>
-                {/* Form fields for property data */}
                 <div>
                     <label>Address:</label>
                     <input
