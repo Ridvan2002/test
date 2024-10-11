@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import './styles/PropertyDetails.css';
 
-function PropertyDetails({ listings, handleOpenAuthModal, onBuy }) {
+function PropertyDetails({ listings, handleOpenAuthModal, onBuy, basePath }) {
     const { id } = useParams();
     const property = listings.find((listing) => listing.id === id);
     
@@ -44,12 +44,12 @@ function PropertyDetails({ listings, handleOpenAuthModal, onBuy }) {
     };
 
     const formattedPrice = `$${parseInt(property.price, 10).toLocaleString()}`;
-    
-// Update main image with relative path from the public/uploads directory
-const mainImageUrl = property.mainImage ? `${process.env.PUBLIC_URL}/uploads/${property.mainImage}` : '';
 
-// Update additional images with relative paths from the public/uploads directory
-const additionalImageUrls = (property.additionalImages || []).map(image => `${process.env.PUBLIC_URL}/uploads/${image}`);
+    // Update main image with basePath from the public/uploads directory
+    const mainImageUrl = property.mainImage ? `${basePath}/uploads/${property.mainImage}` : '';
+
+    // Update additional images with relative paths from the public/uploads directory
+    const additionalImageUrls = (property.additionalImages || []).map(image => `${basePath}/uploads/${image}`);
 
 
     return (

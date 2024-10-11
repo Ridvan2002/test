@@ -3,7 +3,7 @@ import PropertyCard from './PropertyCard';
 import { useAuth } from './context/AuthContext';
 import axios from 'axios';
 
-function Home({ listings, handleOpenAuthModal }) {
+function Home({ listings, handleOpenAuthModal, basePath }) {
     const { userId, isLoggedIn } = useAuth();
     const [searchQuery, setSearchQuery] = useState('');
     const [filters, setFilters] = useState({
@@ -21,10 +21,10 @@ function Home({ listings, handleOpenAuthModal }) {
     // Fetch the listings from the public folder
     const fetchListings = async () => {
         try {
-            // Update this to fetch from the listings.json in the public folder
-            const response = await axios.get(`${process.env.PUBLIC_URL}/listings.json`);
+            // Update this to fetch from the listings.json in the public folder using basePath
+            const response = await axios.get(`${basePath}/listings.json`);
             console.log('Fetched listings:', response.data);
-            setListings(response.data);  // You can pass this down via props if needed
+            setListings(response.data);  // Assuming `setListings` is passed down via props or state
         } catch (error) {
             console.error('Error fetching listings:', error);
         }

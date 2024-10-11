@@ -158,48 +158,59 @@ function AppContent({ listings, addListing, wishlist, addToWishlist, removeFromW
             ) : loading ? (
                 <p>Loading listings...</p>
             ) : (
-                <Routes>
-                    <Route 
-                        path="/" 
-                        element={<Home 
-                                    listings={listings} 
-                                    addToWishlist={handleAddToWishlist} 
-                                    handleOpenAuthModal={handleOpenAuthModal}
-                                 />} 
-                    />
-                    <Route 
-                        path="/property/:id" 
-                        element={<PropertyDetails 
-                                    listings={listings} 
-                                    onBuy={handleBuyNow} 
-                                    handleOpenAuthModal={handleOpenAuthModal}
-                                 />} 
-                    />
-                    <Route 
-                        path="/wishlist" 
-                        element={
-                            <PrivateRoute openAuthModal={handleOpenAuthModal}>
-                                <Wishlist wishlist={wishlist} removeFromWishlist={removeFromWishlist} />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route 
-                        path="/list-property" 
-                        element={
-                            <PrivateRoute openAuthModal={handleOpenAuthModal}>
-                                <ListProperty addListing={addListing} />
-                            </PrivateRoute>
-                        } 
-                    />
-                    <Route 
-                        path="/buy/:id" 
-                        element={
-                            <PrivateRoute openAuthModal={handleOpenAuthModal}>
-                                <Buy />
-                            </PrivateRoute>
-                        } 
-                    />
-                </Routes>
+            <Routes>
+                <Route 
+                    path="/" 
+                    element={<Home 
+                                listings={listings} 
+                                addToWishlist={handleAddToWishlist} 
+                                handleOpenAuthModal={handleOpenAuthModal}
+                                basePath={basePath}  // Pass basePath to Home component
+                            />} 
+                />
+                <Route 
+                    path="/property/:id" 
+                    element={<PropertyDetails 
+                                listings={listings} 
+                                onBuy={handleBuyNow} 
+                                handleOpenAuthModal={handleOpenAuthModal}
+                                basePath={basePath}  // Pass basePath to PropertyDetails component
+                            />} 
+                />
+                <Route 
+                    path="/wishlist" 
+                    element={
+                        <PrivateRoute openAuthModal={handleOpenAuthModal}>
+                            <Wishlist 
+                                wishlist={wishlist} 
+                                removeFromWishlist={removeFromWishlist} 
+                                basePath={basePath}  // Pass basePath to Wishlist if it needs it (for images)
+                            />
+                        </PrivateRoute>
+                    }
+                />
+                <Route 
+                    path="/list-property" 
+                    element={
+                        <PrivateRoute openAuthModal={handleOpenAuthModal}>
+                            <ListProperty 
+                                addListing={addListing} 
+                                basePath={basePath}  // Pass basePath if needed for ListProperty
+                            />
+                        </PrivateRoute>
+                    } 
+                />
+                <Route 
+                    path="/buy/:id" 
+                    element={
+                        <PrivateRoute openAuthModal={handleOpenAuthModal}>
+                            <Buy 
+                                basePath={basePath}  // Pass basePath if needed for Buy component
+                            />
+                        </PrivateRoute>
+                    } 
+                />
+            </Routes>
             )}
 
             <Auth isOpen={isAuthModalOpen} onClose={handleCloseModalAndRedirect} />

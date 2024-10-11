@@ -9,7 +9,7 @@ const formatPriceForDisplay = (price) => {
     return `$${numberPrice.toLocaleString()}`;
 };
 
-function PropertyCard({ property, addToWishlist, removeFromWishlist, isWishlist, handleOpenAuthModal }) {
+function PropertyCard({ property, addToWishlist, removeFromWishlist, isWishlist, handleOpenAuthModal, basePath }) {
     const navigate = useNavigate();
     const { isLoggedIn } = useAuth();
 
@@ -35,7 +35,7 @@ function PropertyCard({ property, addToWishlist, removeFromWishlist, isWishlist,
     return (
         <div className="property-card">
             <img 
-                src={property.mainImage ? `${process.env.PUBLIC_URL}/uploads/${property.mainImage}` : `${process.env.PUBLIC_URL}/default-image.jpg`} 
+                src={property.mainImage ? `${basePath}/uploads/${property.mainImage}` : `${basePath}/default-image.jpg`} 
                 alt={property.title || 'Property'} 
                 className="property-image" 
             />
