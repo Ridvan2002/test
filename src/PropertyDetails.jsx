@@ -46,7 +46,7 @@ function PropertyDetails({ listings, handleOpenAuthModal, onBuy, basePath }) {
     const formattedPrice = `$${parseInt(property.price, 10).toLocaleString()}`;
 
     // Update main image with basePath from the public/uploads directory
-    const mainImageUrl = property.mainImage ? `${basePath}/uploads/${property.mainImage}` : '';
+    const mainImageUrl = property.mainImage ? `${basePath}${property.mainImage}` : '';
 
     // Update additional images with relative paths from the public/uploads directory
     const additionalImageUrls = (property.additionalImages || []).map(image => `${basePath}/uploads/${image}`);

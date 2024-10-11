@@ -35,7 +35,7 @@ function PropertyCard({ property, addToWishlist, removeFromWishlist, isWishlist,
     return (
         <div className="property-card">
             <img 
-                src={property.mainImage ? `${basePath}/uploads/${property.mainImage}` : `${basePath}/default-image.jpg`} 
+                src={property.mainImage ? `${basePath}${property.mainImage}` : `${basePath}/default-image.jpg`} 
                 alt={property.title || 'Property'} 
                 className="property-image" 
             />

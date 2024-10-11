@@ -3,8 +3,12 @@ import PropertyCard from './PropertyCard';
 import { useAuth } from './context/AuthContext';
 import axios from 'axios';
 
-function Home({ listings, handleOpenAuthModal, basePath }) {
+function Home({ handleOpenAuthModal, basePath }) {
     const { userId, isLoggedIn } = useAuth();
+    
+    // Declare state for listings
+    const [listings, setListings] = useState([]); // Missing declaration of listings and setListings
+    
     const [searchQuery, setSearchQuery] = useState('');
     const [filters, setFilters] = useState({
         priceRange: '',
@@ -21,10 +25,10 @@ function Home({ listings, handleOpenAuthModal, basePath }) {
     // Fetch the listings from the public folder
     const fetchListings = async () => {
         try {
-            // Update this to fetch from the listings.json in the public folder using basePath
+            // Fetch from the listings.json in the public folder using basePath
             const response = await axios.get(`${basePath}/listings.json`);
             console.log('Fetched listings:', response.data);
-            setListings(response.data);  // Assuming `setListings` is passed down via props or state
+            setListings(response.data);  // Use setListings to update state with the listings data
         } catch (error) {
             console.error('Error fetching listings:', error);
         }
@@ -32,7 +36,7 @@ function Home({ listings, handleOpenAuthModal, basePath }) {
 
     useEffect(() => {
         fetchListings(); // Call the fetchListings function when the component mounts
-    }, []);
+    }, []); // Make sure to include an empty dependency array so it only runs once on mount
 
     const handleAddToWishlist = async (property) => {
         if (!isLoggedIn) {
@@ -43,7 +47,8 @@ function Home({ listings, handleOpenAuthModal, basePath }) {
         try {
             // For GitHub Pages, remove the backend API call, use local state instead
             console.log("Adding to wishlist:", property.id);
-            addToWishlist(property);  // Assuming `addToWishlist` is passed as a prop or in state
+            // Assuming you have addToWishlist implemented in a higher level component
+            addToWishlist(property);  
         } catch (error) {
             console.error('Error adding to wishlist:', error);
         }
