@@ -160,3 +160,4 @@ function Home({ listings, handleOpenAuthModal }) {
 }
 
 export default Home;
+//home
