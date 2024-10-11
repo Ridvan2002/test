@@ -35,10 +35,11 @@ function PropertyCard({ property, addToWishlist, removeFromWishlist, isWishlist,
     return (
         <div className="property-card">
             <img 
-                src={property.mainImage ? `${process.env.PUBLIC_URL}${property.mainImage}` : '/default-image.jpg'} 
+                src={property.mainImage ? `${process.env.PUBLIC_URL}/uploads/${property.mainImage}` : `${process.env.PUBLIC_URL}/default-image.jpg`} 
                 alt={property.title || 'Property'} 
                 className="property-image" 
             />
+
             <div className="property-details">
                 <h2>{property.title ? property.title : `${property.bedrooms}-bedroom ${property.propertyType}`}</h2>
                 <p>{property.address}</p>

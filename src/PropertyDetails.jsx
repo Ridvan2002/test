@@ -45,9 +45,12 @@ function PropertyDetails({ listings, handleOpenAuthModal, onBuy }) {
 
     const formattedPrice = `$${parseInt(property.price, 10).toLocaleString()}`;
     
-    // Update main image and additional images with relative paths from public directory
-    const mainImageUrl = property.mainImage ? `${process.env.PUBLIC_URL}${property.mainImage}` : '';
-    const additionalImageUrls = (property.additionalImages || []).map(image => `${process.env.PUBLIC_URL}${image}`);
+// Update main image with relative path from the public/uploads directory
+const mainImageUrl = property.mainImage ? `${process.env.PUBLIC_URL}/uploads/${property.mainImage}` : '';
+
+// Update additional images with relative paths from the public/uploads directory
+const additionalImageUrls = (property.additionalImages || []).map(image => `${process.env.PUBLIC_URL}/uploads/${image}`);
+
 
     return (
         <div className="property-details-page">
