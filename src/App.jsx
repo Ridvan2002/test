@@ -25,8 +25,8 @@ function App() {
         setLoading(true);
         setError(null);
         try {
-            // Fetch the listings.json file from the public directory using process.env.PUBLIC_URL
-            const response = await axios.get(`${process.env.PUBLIC_URL}/listings.json`);
+            // Fetch the listings.json file from the public directory
+            const response = await axios.get(`${basePath}/listings.json`);
             console.log('Fetched listings:', response.data);  
             setListings(response.data);
         } catch (error) {
@@ -36,7 +36,6 @@ function App() {
             setLoading(false);
         }
     };
-    
 
     useEffect(() => {
         fetchListings();  // Fetch listings when the component mounts
