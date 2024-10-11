@@ -49,7 +49,7 @@ function PropertyDetails({ listings, handleOpenAuthModal, onBuy, basePath }) {
     const mainImageUrl = property.mainImage ? `${basePath}${property.mainImage}` : '';
 
     // Update additional images with relative paths from the public/uploads directory
-    const additionalImageUrls = (property.additionalImages || []).map(image => `${basePath}/uploads/${image}`);
+    const additionalImageUrls = (property.additionalImages || []).map(image => `${basePath}${image}`);
 
 
     return (
