@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles/ListProperty.css';
-import api from './utils/api';
 
 function ListProperty({ addListing }) {
     const [formData, setFormData] = useState({
@@ -40,49 +39,35 @@ function ListProperty({ addListing }) {
         console.log("Ordered additional images:", sortedFiles); 
     };
     
-
     const formatPrice = (value) => {
         if (!value) return '';
         return `$${parseInt(value, 10).toLocaleString()}`;
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        
-        const formDataToSend = new FormData();
-        formDataToSend.append('address', formData.address);
-        formDataToSend.append('propertyType', formData.propertyType);
-        formDataToSend.append('bedrooms', formData.bedrooms);
-        formDataToSend.append('bathrooms', formData.bathrooms);
-        formDataToSend.append('squareFootage', formData.squareFootage);
-        formDataToSend.append('price', formData.price);
-        formDataToSend.append('description', formData.description);
 
-        if (mainImage) {
-            formDataToSend.append('mainImage', mainImage);
-        }
-        additionalImages.forEach(file => {
-            formDataToSend.append('additionalImages', file);
-        });
+        const newListing = {
+            id: Math.random().toString(36).substring(2, 15), // Generate a random ID
+            address: formData.address,
+            propertyType: formData.propertyType,
+            bedrooms: formData.bedrooms,
+            bathrooms: formData.bathrooms,
+            squareFootage: formData.squareFootage,
+            price: formData.price,
+            description: formData.description,
+            mainImage: mainImage ? URL.createObjectURL(mainImage) : null, // Store image URLs
+            additionalImages: additionalImages.map(image => URL.createObjectURL(image))
+        };
 
-        try {
-            const response = await api.post('/listings', formDataToSend, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+        // Fetch current listings from localStorage
+        const storedListings = JSON.parse(localStorage.getItem('listings')) || [];
+        storedListings.push(newListing);
+        localStorage.setItem('listings', JSON.stringify(storedListings));
 
-            if (response.status === 201) {
-                addListing();
-                window.alert('Listing submitted successfully!');
-                navigate('/');
-            } else {
-                window.alert('Failed to submit the listing.');
-            }
-        } catch (error) {
-            console.error('Error creating listing:', error);
-            window.alert('Error creating the listing.');
-        }
+        addListing(); // Trigger re-fetch of listings in parent component
+        window.alert('Listing submitted successfully!');
+        navigate('/'); // Redirect to home
     };
 
     return (

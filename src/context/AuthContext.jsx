@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import api from '../utils/api';
+import axios from 'axios';  // We are using axios for convenience
 
 const AuthContext = createContext();
 
@@ -11,31 +11,57 @@ export function AuthProvider({ children }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userId, setUserId] = useState(null);
 
+  const getUsers = async () => {
+    try {
+      // Fetch the users.json file from the public directory
+      const response = await axios.get('/users.json');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      return [];
+    }
+  };
+
   const login = async (email, password, onClose) => {
     try {
-      const response = await api.post('/login', { email, password });
-      if (response.status === 200) {
+      const users = await getUsers();
+      const user = users.find((user) => user.email === email);
+
+      if (user && user.password === password) {
         setIsLoggedIn(true);
-        setUserId(response.data.userId);
+        setUserId(user.id);
         alert('Successfully logged in!');
         onClose();
+      } else {
+        alert('Invalid email or password');
       }
     } catch (error) {
-      alert('Invalid email or password');
+      console.error('Error during login:', error);
+      alert('Error during login');
     }
   };
 
   const register = async (email, password, onClose) => {
     try {
-      const response = await api.post('/register', { email, password });
-      if (response.status === 201) {
+      const users = await getUsers();
+      const existingUser = users.find((user) => user.email === email);
+
+      if (existingUser) {
+        alert('User already registered');
+      } else {
+        const newUser = { id: users.length + 1, email, password };
+        users.push(newUser);
+
+        // For a static website, you can't modify users.json dynamically
+        // So we just simulate a successful registration
         setIsLoggedIn(true);
-        setUserId(response.data.userId);
+        setUserId(newUser.id);
         alert('Successfully registered!');
         onClose();
       }
     } catch (error) {
-      alert('User already registered or error during registration');
+      console.error('Error during registration:', error);
+      alert('Error during registration');
     }
   };
 

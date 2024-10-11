@@ -12,7 +12,7 @@ import axios from 'axios';
 
 function App() {
     const isProduction = process.env.NODE_ENV === 'production';
-    const basePath = isProduction ? '/test' : '';  
+    const basePath = isProduction ? '/test' : '';  // Adjust for production deployment, e.g., GitHub Pages
     const [listings, setListings] = useState([]); 
     const [wishlist, setWishlist] = useState([]);
     const [isAuthModalOpen, setAuthModalOpen] = useState(false);
@@ -20,11 +20,13 @@ function App() {
     const [loading, setLoading] = useState(true);  
     const [error, setError] = useState(null);      
 
+    // Function to fetch the listings from the listings.json file
     const fetchListings = async () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get('http://localhost:5000/api/listings');
+            // Fetch the listings.json file from the public directory
+            const response = await axios.get(`${basePath}/listings.json`);
             console.log('Fetched listings:', response.data);  
             setListings(response.data);
         } catch (error) {
@@ -36,7 +38,7 @@ function App() {
     };
 
     useEffect(() => {
-        fetchListings();  
+        fetchListings();  // Fetch listings when the component mounts
     }, []);
 
     const addListing = () => {
@@ -48,7 +50,7 @@ function App() {
             console.log("Adding property to wishlist:", property);
             setWishlist([...wishlist, property]);
         } else {
-            console.log("Property already in wishlist in state.");
+            console.log("Property already in wishlist.");
         }
     };
 

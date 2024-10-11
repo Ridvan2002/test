@@ -5,43 +5,31 @@ import { useAuth } from './context/AuthContext';
 function Wishlist() {
     const { userId } = useAuth();
     const [wishlist, setWishlist] = useState([]);
-
+    
+    // Fetch wishlist from public JSON file (simulating user-specific data)
     useEffect(() => {
         const fetchWishlist = async () => {
-            if (userId) {
-                try {
-                    const response = await fetch(`http://localhost:5000/api/wishlist/${userId}`);
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    const data = await response.json();
-                    setWishlist(data);
-                } catch (error) {
-                    console.error('Error fetching wishlist:', error);
+            try {
+                // Adjust this path based on where your wishlist data is stored in the public folder
+                const response = await fetch(`${process.env.PUBLIC_URL}/wishlist.json`);
+                if (!response.ok) {
+                    throw new Error('Failed to load wishlist data');
                 }
+                const data = await response.json();
+                // Simulate user-specific wishlist by filtering based on userId (if needed)
+                const userWishlist = data.filter(item => item.userId === userId);
+                setWishlist(userWishlist);
+            } catch (error) {
+                console.error('Error fetching wishlist:', error);
             }
         };
+
         fetchWishlist();
     }, [userId]);
 
-    const removeFromWishlist = async (id) => {
-        try {
-            const response = await fetch('http://localhost:5000/api/wishlist', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ userId, id }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-
-            setWishlist(prevWishlist => prevWishlist.filter(item => item.id !== id));
-        } catch (error) {
-            console.error('Error removing from wishlist:', error);
-        }
+    // Simulate removing from wishlist (in client state)
+    const removeFromWishlist = (id) => {
+        setWishlist(prevWishlist => prevWishlist.filter(item => item.id !== id));
     };
 
     return (

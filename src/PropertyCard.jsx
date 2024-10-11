@@ -11,45 +11,34 @@ const formatPriceForDisplay = (price) => {
 
 function PropertyCard({ property, addToWishlist, removeFromWishlist, isWishlist, handleOpenAuthModal }) {
     const navigate = useNavigate();
-    const { isLoggedIn, userId } = useAuth();
+    const { isLoggedIn } = useAuth();
 
-    const handleAddToWishlist = async () => {
+    const handleAddToWishlist = () => {
         if (!isLoggedIn) {
-            handleOpenAuthModal('/wishlist'); 
+            handleOpenAuthModal('/wishlist');
         } else {
-            try {
-                console.log("Sending userId:", userId, "and id:", property.id); 
-    
-                const response = await fetch('http://localhost:5000/api/wishlist', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ userId, id: property.id }), 
-                });
-    
-                if (response.ok) {
-                    console.log('Property added to wishlist successfully');
-                    addToWishlist(property);  
-                    navigate('/wishlist');
-                } else {
-                    const errorData = await response.json();
-                    console.error('Error adding to wishlist:', errorData.message);
-                }
-            } catch (error) {
-                console.error('Error adding to wishlist:', error);
-            }
+            const storedWishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+            const updatedWishlist = [...storedWishlist, property];
+            localStorage.setItem('wishlist', JSON.stringify(updatedWishlist));
+            addToWishlist(property);
+            navigate('/wishlist');
         }
-    };    
-    
-    
+    };
+
     const handleRemoveFromWishlist = () => {
-        removeFromWishlist(property.id); 
+        const storedWishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+        const updatedWishlist = storedWishlist.filter(item => item.id !== property.id);
+        localStorage.setItem('wishlist', JSON.stringify(updatedWishlist));
+        removeFromWishlist(property.id);
     };
 
     return (
         <div className="property-card">
-            <img src={property.mainImage ? `http://localhost:5000${property.mainImage}` : '/default-image.jpg'} alt={property.title || 'Property'} className="property-image" />
+            <img 
+                src={property.mainImage ? `${process.env.PUBLIC_URL}${property.mainImage}` : '/default-image.jpg'} 
+                alt={property.title || 'Property'} 
+                className="property-image" 
+            />
             <div className="property-details">
                 <h2>{property.title ? property.title : `${property.bedrooms}-bedroom ${property.propertyType}`}</h2>
                 <p>{property.address}</p>

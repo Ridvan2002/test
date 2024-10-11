@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropertyCard from './PropertyCard';
 import { useAuth } from './context/AuthContext';
 import axios from 'axios';
@@ -18,6 +18,22 @@ function Home({ listings, handleOpenAuthModal }) {
         return parseInt(price.replace(/[^0-9]/g, ''), 10);
     };
 
+    // Fetch the listings from the public folder
+    const fetchListings = async () => {
+        try {
+            // Update this to fetch from the listings.json in the public folder
+            const response = await axios.get(`${process.env.PUBLIC_URL}/listings.json`);
+            console.log('Fetched listings:', response.data);
+            setListings(response.data);  // You can pass this down via props if needed
+        } catch (error) {
+            console.error('Error fetching listings:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchListings(); // Call the fetchListings function when the component mounts
+    }, []);
+
     const handleAddToWishlist = async (property) => {
         if (!isLoggedIn) {
             handleOpenAuthModal();
@@ -25,24 +41,13 @@ function Home({ listings, handleOpenAuthModal }) {
         }
     
         try {
-            console.log("Sending userId:", userId, "and id:", property.id);
-    
-            const response = await axios.post('http://localhost:5000/api/wishlist', { userId, id: property.id });
-    
-            if (response.status === 201) {
-                console.log('Property added to wishlist successfully');
-            } else if (response.status === 200) {
-                console.log('Property is already in wishlist');
-            }
+            // For GitHub Pages, remove the backend API call, use local state instead
+            console.log("Adding to wishlist:", property.id);
+            addToWishlist(property);  // Assuming `addToWishlist` is passed as a prop or in state
         } catch (error) {
-            if (error.response?.status === 400 && error.response?.data?.message === 'Property already in wishlist') {
-                console.log('Property is already in wishlist, no need to add again');
-            } else {
-                console.error('Error adding to wishlist:', error.response?.data?.message || error.message);
-            }
+            console.error('Error adding to wishlist:', error);
         }
     };
-    
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
@@ -160,4 +165,3 @@ function Home({ listings, handleOpenAuthModal }) {
 }
 
 export default Home;
-//home

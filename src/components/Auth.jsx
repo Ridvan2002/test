@@ -8,9 +8,11 @@ function Auth({ isOpen, onClose }) {
   const [password, setPassword] = useState('');
   const { login, register } = useAuth();
 
+  // Set base path depending on production or development environment
   const isProduction = process.env.NODE_ENV === 'production';
-  const basePath = isProduction ? '/TheRealEstate' : '';
+  const basePath = isProduction ? '/TheRealEstate' : '';  // Change '/TheRealEstate' to your GitHub repository name
 
+  // Handle form submission for login or register
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -20,16 +22,18 @@ function Auth({ isOpen, onClose }) {
       register(email, password, onClose);
     }
 
-    setEmail('');
-    setPassword('');
+    setEmail('');  // Clear email input after submit
+    setPassword('');  // Clear password input after submit
   };
 
+  // Toggle between login and register forms
   const handleToggle = () => {
     setIsLogin(!isLogin);
-    setEmail('');
-    setPassword('');
+    setEmail('');  // Clear email input when toggling
+    setPassword('');  // Clear password input when toggling
   };
 
+  // Don't render the component if `isOpen` is false
   if (!isOpen) return null;
 
   return (
@@ -37,6 +41,7 @@ function Auth({ isOpen, onClose }) {
       <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
         <div className="auth-title">
           <span className="welcome-text">Welcome To</span>
+          {/* Ensure the image path is correct for GitHub Pages */}
           <img src={`${basePath}/house.png`} alt="house icon" className="title-icon" />
           <h2 className="title-text">TheRealEstate</h2>
         </div>

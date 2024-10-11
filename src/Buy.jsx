@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 
 function Buy() {
-  const location = useLocation();
-  const property = location.state?.property;
+  const { id } = useParams(); // Get the property ID from the URL params
+  const [property, setProperty] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,6 +14,22 @@ function Buy() {
     cvv: ''
   });
   const [submitted, setSubmitted] = useState(false);
+
+  // Fetch property details from the public JSON file
+  useEffect(() => {
+    const fetchPropertyDetails = async () => {
+      try {
+        const response = await fetch(`${process.env.PUBLIC_URL}/listings.json`);
+        const data = await response.json();
+        const selectedProperty = data.find((property) => property.id === id);
+        setProperty(selectedProperty || null);
+      } catch (error) {
+        console.error('Error fetching property details:', error);
+      }
+    };
+
+    fetchPropertyDetails();
+  }, [id]);
 
   if (!property) {
     return <p>Property details not found.</p>;
