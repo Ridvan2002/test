@@ -163,7 +163,7 @@ function AppContent({ listings, addListing, wishlist, addToWishlist, removeFromW
                     path="/" 
                     element={<Home 
                                 listings={listings} 
-                                addToWishlist={handleAddToWishlist} 
+                                addToWishlist={addToWishlist} 
                                 handleOpenAuthModal={handleOpenAuthModal}
                                 basePath={basePath}  // Pass basePath to Home component
                             />} 
