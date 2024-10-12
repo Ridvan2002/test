@@ -159,6 +159,7 @@ function Home({ handleOpenAuthModal, basePath }) {
                             key={index}
                             property={property}
                             addToWishlist={() => handleAddToWishlist(property)}
+                            basePath = {basePath}
                         />
                     ))}
                 </div>

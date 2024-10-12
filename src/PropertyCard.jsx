@@ -32,12 +32,10 @@ function PropertyCard({ property, addToWishlist, removeFromWishlist, isWishlist,
         removeFromWishlist(property.id);
     };
 
-    const mainImageUrl = property.mainImage ? `${basePath}${property.mainImage}` : '';
-
     return (
         <div className="property-card">
             <img 
-                src={mainImageUrl} 
+                src={property.mainImage ? `${basePath}${property.mainImage}` : `${basePath}/default-image.jpg`} 
                 alt={property.title || 'Property'} 
                 className="property-image" 
             />
